@@ -1,1 +1,1 @@
-# candidate-screening
+# candidate-profile-screening
