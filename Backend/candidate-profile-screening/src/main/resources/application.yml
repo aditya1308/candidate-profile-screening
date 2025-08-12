@@ -1,0 +1,25 @@
+server:
+  port: 8092
+spring:
+  application:
+    name : candidate-profile-screening
+  ai:
+    openai:
+      api-key: ahjj
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+      format_sql: true
+      generate_statistics: false
+      show-sql: true
+  datasource:
+    #change as per your system
+    url: jdbc:mysql://localhost:3306/candidate
+    username: root
+    password: Aditya@123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+perplexity:
+  api:
+    key: #add the api key
+  base-url : https://api.perplexity.ai/chat/completions
