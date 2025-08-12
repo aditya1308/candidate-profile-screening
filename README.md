@@ -1,4 +1,3 @@
-# candidate-profile-screening
 # 🎯 Candidate Profile Screening
 
 A project for **automating the evaluation of job candidate profiles** using Java, Spring Boot, and AI integrations.  
