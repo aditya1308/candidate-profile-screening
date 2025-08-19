@@ -26,4 +26,9 @@ public class JobServiceImpl implements JobService {
     public List<Job> searchJobs(String searchTerm) {
         return jobRepository.searchByTitleOrLocation(searchTerm);
     }
+
+    @Override
+    public Job saveJob(Job job) {
+        return jobRepository.save(job);
+    }
 }

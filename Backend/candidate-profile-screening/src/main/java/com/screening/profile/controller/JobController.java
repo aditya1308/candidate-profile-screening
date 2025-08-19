@@ -25,4 +25,9 @@ public class JobController {
     public List<Job> searchJobs(@RequestParam("query") String query) {
         return jobService.searchJobs(query);
     }
+
+    @PostMapping
+    public Job createJob(@RequestBody Job job) {
+        return jobService.saveJob(job);
+    }
 }

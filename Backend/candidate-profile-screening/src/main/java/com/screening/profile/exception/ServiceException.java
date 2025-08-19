@@ -1,14 +1,14 @@
 package com.screening.profile.exception;
 
-import lombok.Getter;
-
-@Getter
 public class ServiceException extends RuntimeException {
-    private final String errorCode;
+    private String errorCode;
 
-    public ServiceException(String errorCode, String message) {
+    public ServiceException(String message, String errorCode) {
         super(message);
         this.errorCode = errorCode;
     }
 
+    public String getErrorCode() {
+        return errorCode;
+    }
 }
