@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 import static com.screening.profile.util.ExtractorHelperUtils.*;
 import static com.screening.profile.util.ExtractorHelperUtils.extractName;
@@ -42,6 +43,7 @@ public class CandidateServiceImpl implements CandidateService {
         }
         String summary = objectMapper.readTree(text).get("summary").asText();
         Integer score = objectMapper.readTree(text).get("score").asInt();
+        List<String> matchedSkills = objectMapper.readerForListOf(String.class).readValue(objectMapper.readTree(text).get("matchedSkills"));
         candidate.setEmail(email);
         candidate.setPhoneNumber(phone);
         candidate.setDateOfBirth(extractDob(resumeText));
@@ -50,6 +52,8 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setSummary(summary);
         candidate.setFileData(resume.getBytes());
         candidate.setUniqueId(uniqueId);
+        candidate.setMatchedSkills(matchedSkills);
+        log.info(candidate.toString());
         candidateRepository.save(candidate);
         return candidate;
     }

@@ -1,8 +1,13 @@
 package com.screening.profile.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,7 +18,13 @@ public class Candidate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+
+    @NotNull
+    @Email(message = "Email is not valid")
     private String email;
+
+    @NotNull
+    @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile number is not valid")
     private String phoneNumber;
     private String dateOfBirth;
     private Integer score;
@@ -23,5 +34,22 @@ public class Candidate {
     @Column(columnDefinition = "LONGBLOB")
     private byte[] fileData;
     private String uniqueId;
+    @Column(name = "matched_skills", length = 1000)
+    private List<String> matchedSkills;
+
+    @Override
+    public String toString() {
+        return "Candidate{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", dateOfBirth='" + dateOfBirth + '\'' +
+                ", score=" + score +
+                ", summary='" + summary + '\'' +
+                ", uniqueId='" + uniqueId + '\'' +
+                ", matchedSkills=" + matchedSkills +
+                '}';
+    }
     // one to many mapping of candidate to job applicatipn
 }

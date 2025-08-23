@@ -2,6 +2,7 @@ package com.screening.profile.controller;
 
 import com.screening.profile.model.Candidate;
 import com.screening.profile.service.PerplexityService;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,15 +24,15 @@ public class JobMatchController {
     }
 
     @PostMapping("/analyze-job")
-    public ResponseEntity<?> analyze(@RequestParam("resumePdf") MultipartFile resumePdf, @RequestParam("jobDescription")String jobDescription) throws Exception {
+    public ResponseEntity<?> analyze(@RequestParam("resumePdf") MultipartFile resumePdf, @RequestParam("jobId") Integer jobId) throws Exception {
         log.info("JobController, file received");
-        Candidate candidate = this.perplexityService.askPerplexityForPrompt(resumePdf, jobDescription);
+        Candidate candidate = this.perplexityService.askPerplexityForPrompt(resumePdf, jobId);
         if (candidate == null) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body("Candidate already exists for this job description");
         }
-        return ResponseEntity.ok().body(this.perplexityService.askPerplexityForPrompt(resumePdf, jobDescription));
+        return ResponseEntity.ok().body(candidate);
     }
 
 }
