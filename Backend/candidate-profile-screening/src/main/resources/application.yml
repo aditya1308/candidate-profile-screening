@@ -19,7 +19,14 @@ spring:
     username: root
     password: Aditya@123
     driver-class-name: com.mysql.cj.jdbc.Driver
+    initialization-mode: always
+  sql:
+    init:
+      mode: always
 perplexity:
   api:
     key: #add the api key
   base-url : https://api.perplexity.ai/chat/completions
+jwt:
+  secret: myssdesfefcfsfecrhjfgwjfirehifjolfkpfwdwsfghwewqfwqghpldgdsczvbnesecrfsfwsfwswetkey
+  expiration: 3600000
