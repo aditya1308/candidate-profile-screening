@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Optional;
 import java.util.List;
 
 import static com.screening.profile.util.ExtractorHelperUtils.*;
@@ -37,10 +36,14 @@ public class CandidateServiceImpl implements CandidateService {
         String email = extractEmail(resumeText);
         String name = extractName(resumeText, candidate);
         String phone = extractPhone(resumeText);
+        String uniqueId = createUniqueId(name, email, phone);
+        if(!candidateRepository.findByUniqueId(uniqueId).isEmpty()){
+            log.info("Candidate already exists");
+            return null;
+        }
         String summary = objectMapper.readTree(text).get("summary").asText();
         Integer score = objectMapper.readTree(text).get("score").asInt();
-        List<String> matchedSkills = objectMapper.readerForListOf(String.class)
-                .readValue(objectMapper.readTree(text).get("matchedSkills"));
+        List<String> matchedSkills = objectMapper.readerForListOf(String.class).readValue(objectMapper.readTree(text).get("matchedSkills"));
         candidate.setEmail(email);
         candidate.setPhoneNumber(phone);
         candidate.setDateOfBirth(extractDob(resumeText));
@@ -48,35 +51,11 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setScore(score);
         candidate.setSummary(summary);
         candidate.setFileData(resume.getBytes());
+        candidate.setUniqueId(uniqueId);
         candidate.setMatchedSkills(matchedSkills);
         log.info(candidate.toString());
         candidateRepository.save(candidate);
         return candidate;
-    }
-
-    @Override
-    public Optional<Candidate> findByUniqueId(String uniqueId) {
-        return candidateRepository.findByUniqueId(uniqueId).stream().findFirst();
-    }
-
-    @Override
-    public Candidate getOrCreateCandidate(String name, String email, String phone) {
-        String uniqueId = createUniqueId(name, email, phone);
-        Optional<Candidate> existingCandidate = findByUniqueId(uniqueId);
-        
-        if (existingCandidate.isPresent()) {
-            return existingCandidate.get();
-        }
-        
-        // Create new candidate if not exists
-        Candidate candidate = new Candidate();
-        candidate.setName(name);
-        candidate.setEmail(email);
-        candidate.setPhoneNumber(phone);
-        candidate.setScore(0); // Default score
-        candidate.setSummary(""); // Default summary
-        
-        return candidateRepository.save(candidate);
     }
 
     public String createUniqueId(String name, String email, String phone)

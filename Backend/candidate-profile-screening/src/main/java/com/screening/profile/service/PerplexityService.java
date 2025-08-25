@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.screening.profile.exception.ServiceException;
 import com.screening.profile.model.Candidate;
+import com.screening.profile.repository.JobRepository;
 import com.screening.profile.service.candidate.CandidateService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,13 +30,15 @@ public class PerplexityService {
     private boolean enabled;
 
     private final CandidateService candidateService;
+    private final JobService jobService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PerplexityService(CandidateService candidateService) {
+    public PerplexityService(CandidateService candidateService, JobService jobService) {
         this.candidateService = candidateService;
+        this.jobService = jobService;
     }
 
-    public Candidate askPerplexityForPrompt(MultipartFile resumeFile, String jobDescription) throws Exception {
+    public Candidate askPerplexityForPrompt(MultipartFile resumeFile, Integer jobId) throws Exception {
         String resume = extractText(resumeFile);
 
         // If disabled or no API key provided, fallback locally
@@ -49,6 +52,7 @@ public class PerplexityService {
         payload.put("max_tokens", 500);
         payload.put("temperature", 0.7);
 
+        String jobDescription = jobService.getJobDescription(jobId);
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of(
                 "role", "system",

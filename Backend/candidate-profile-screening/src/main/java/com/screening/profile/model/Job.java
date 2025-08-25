@@ -3,10 +3,6 @@ package com.screening.profile.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "jobs")
@@ -25,10 +21,6 @@ public class Job {
 
     @Column(nullable = false)
     private String location;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = false)
-    private List<JobApplication> applications = new ArrayList<>();
 
     public Job() {}
 
