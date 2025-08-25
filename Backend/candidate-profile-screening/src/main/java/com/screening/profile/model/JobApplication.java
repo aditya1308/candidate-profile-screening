@@ -15,23 +15,25 @@ public class JobApplication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "job_id", nullable = false)
-    private Integer jobId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "job_id", nullable = false, foreignKey = @ForeignKey(name = "fk_job_application_job"))
+    private Job job;
 
-    @Column(name = "candidate_id", nullable = false)
-    private Long candidateId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "candidate_id", nullable = false, foreignKey = @ForeignKey(name = "fk_job_application_candidate"))
+    private Candidate candidate;
 
     @Column(name = "application_date", nullable = false)
     private LocalDateTime applicationDate;
 
     @Column(nullable = false)
-    private String status; // e.g., "Applied", "Under Review", "Accepted", "Rejected"
+    private String status; // Status of the application, e.g., "Applied", "Under Review", "Accepted", "Rejected"
 
     public JobApplication() {}
 
-    public JobApplication(Integer jobId, Long candidateId, String status) {
-        this.jobId = jobId;
-        this.candidateId = candidateId;
+    public JobApplication(Job job, Candidate candidate, String status) {
+        this.job = job;
+        this.candidate = candidate;
         this.applicationDate = LocalDateTime.now();
         this.status = status;
     }

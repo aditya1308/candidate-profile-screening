@@ -3,12 +3,15 @@ package com.screening.profile.service.impl;
 import com.screening.profile.model.Job;
 import com.screening.profile.repository.JobRepository;
 import com.screening.profile.service.JobService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Slf4j
 public class JobServiceImpl implements JobService {
     private final JobRepository jobRepository;
 
@@ -30,5 +33,22 @@ public class JobServiceImpl implements JobService {
     @Override
     public Job saveJob(Job job) {
         return jobRepository.save(job);
+    }
+
+    @Override
+    public Optional<Job> getJob(Integer id) {
+        return jobRepository.findById(id);
+    }
+
+    @Override
+    public String getJobDescription(Integer id) {
+        String jobDescription = "";
+        Optional<Job> job = jobRepository.findById(id);
+        if (job.isPresent()) {
+            jobDescription = job.get().getDescription();
+        } else {
+            log.error("No job present for this id");
+        }
+        return jobDescription;
     }
 }
