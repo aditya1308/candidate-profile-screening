@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
 
 import static com.screening.profile.util.ExtractorHelperUtils.*;
 import static com.screening.profile.util.ExtractorHelperUtils.extractName;
@@ -52,6 +53,32 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setUniqueId(uniqueId);
         candidateRepository.save(candidate);
         return candidate;
+    }
+
+    @Override
+    public Optional<Candidate> findByUniqueId(String uniqueId) {
+        return candidateRepository.findByUniqueId(uniqueId).stream().findFirst();
+    }
+
+    @Override
+    public Candidate getOrCreateCandidate(String name, String email, String phone) {
+        String uniqueId = createUniqueId(name, email, phone);
+        Optional<Candidate> existingCandidate = findByUniqueId(uniqueId);
+        
+        if (existingCandidate.isPresent()) {
+            return existingCandidate.get();
+        }
+        
+        // Create new candidate if not exists
+        Candidate candidate = new Candidate();
+        candidate.setName(name);
+        candidate.setEmail(email);
+        candidate.setPhoneNumber(phone);
+        candidate.setUniqueId(uniqueId);
+        candidate.setScore(0); // Default score
+        candidate.setSummary(""); // Default summary
+        
+        return candidateRepository.save(candidate);
     }
 
     public String createUniqueId(String name, String email, String phone)
