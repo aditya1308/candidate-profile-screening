@@ -43,7 +43,7 @@ public class PerplexityService {
 
         // If disabled or no API key provided, fallback locally
         if (!enabled || apiKey == null || apiKey.isBlank()) {
-            String fallback = makeFallbackJson(resume, jobDescription);
+            String fallback = makeFallbackJson(resume, jobService.getJobDescription(jobId));
             return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback);
         }
 
@@ -111,7 +111,7 @@ public class PerplexityService {
         // Very basic heuristic; you can enhance later
         int score = Math.min(10, Math.max(0, (resume.length() + jobDescription.length()) / 2000));
         String summary = "Local evaluation used due to unavailable AI service. Score is heuristic.";
-        return String.format(Locale.ROOT, "{\"summary\":\"%s\",\"score\":%d}", summary, score);
+        return String.format(Locale.ROOT, "{\"summary\":\"%s\",\"score\":%d,\"matchedSkills\":[\"Basic Skills\"],\"missingSkills\":[\"Advanced Skills\"]}", summary, score);
     }
 }
 
