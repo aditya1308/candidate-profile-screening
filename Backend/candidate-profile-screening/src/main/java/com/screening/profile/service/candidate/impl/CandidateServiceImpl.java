@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.repository.CandidateRepository;
 import com.screening.profile.service.candidate.CandidateService;
+import com.screening.profile.util.enums.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 
 import static com.screening.profile.util.ExtractorHelperUtils.*;
 import static com.screening.profile.util.ExtractorHelperUtils.extractName;
@@ -37,10 +39,10 @@ public class CandidateServiceImpl implements CandidateService {
         String name = extractName(resumeText, candidate);
         String phone = extractPhone(resumeText);
         String uniqueId = createUniqueId(name, email, phone);
-        if(!candidateRepository.findByUniqueId(uniqueId).isEmpty()){
-            log.info("Candidate already exists");
-            return null;
-        }
+//        if(!candidateRepository.findByUniqueId(uniqueId).isEmpty()){
+//            log.info("Candidate already exists");
+//            return null;
+//        }
         String summary = objectMapper.readTree(text).get("summary").asText();
         Integer score = objectMapper.readTree(text).get("score").asInt();
         List<String> matchedSkills = objectMapper.readerForListOf(String.class).readValue(objectMapper.readTree(text).get("matchedSkills"));
@@ -53,9 +55,19 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setFileData(resume.getBytes());
         candidate.setUniqueId(uniqueId);
         candidate.setMatchedSkills(matchedSkills);
+        candidate.setStatus(Status.IN_PROCESS);
         log.info(candidate.toString());
         candidateRepository.save(candidate);
         return candidate;
+    }
+
+    public List<Candidate> getAllCandidates(){
+        return candidateRepository.findAll();
+    }
+
+    public Candidate getCandidateById(Long id){
+        Optional<Candidate> candidate = candidateRepository.findById(id);
+        return candidate.orElse(null);
     }
 
     public String createUniqueId(String name, String email, String phone)

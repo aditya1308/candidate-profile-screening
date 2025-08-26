@@ -1,5 +1,6 @@
 package com.screening.profile.model;
 
+import com.screening.profile.util.enums.Status;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +37,9 @@ public class Candidate {
     private String uniqueId;
     @Column(name = "matched_skills", length = 1000)
     private List<String> matchedSkills;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @Override
     public String toString() {
