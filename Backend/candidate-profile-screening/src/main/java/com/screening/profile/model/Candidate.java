@@ -34,7 +34,9 @@ public class Candidate {
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] fileData;
+
     private String uniqueId;
+
     @Column(name = "matched_skills", length = 1000)
     private List<String> matchedSkills;
 

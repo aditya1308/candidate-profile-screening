@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.boot.autoconfigure.batch.BatchProperties;
 
 @Getter
 @Setter
@@ -16,9 +17,6 @@ public class Interview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "applicationId")
-    private Integer applicationId;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "round1_details", columnDefinition = "json")
@@ -34,4 +32,9 @@ public class Interview {
 
     @Column(name = "feedback_summary", length = 1000)
     private String feedback;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "job_application_id", referencedColumnName = "id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_interview_job+application_id"))
+    private JobApplication jobApplication;
 }

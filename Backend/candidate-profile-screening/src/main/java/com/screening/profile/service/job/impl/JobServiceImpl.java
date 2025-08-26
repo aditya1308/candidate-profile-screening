@@ -1,13 +1,12 @@
-package com.screening.profile.service.impl;
+package com.screening.profile.service.job.impl;
 
 import com.screening.profile.model.Job;
 import com.screening.profile.repository.JobRepository;
-import com.screening.profile.service.JobService;
+import com.screening.profile.service.job.JobService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,9 +41,9 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public String getJobDescription(Integer id) {
+    public String getJobDescription(Long id) {
         String jobDescription = "";
-        Optional<Job> job = jobRepository.findById(id);
+        Optional<Job> job = jobRepository.findById(Math.toIntExact(id));
         if(job.isPresent()){
             jobDescription = job.get().getDescription();
         } else{

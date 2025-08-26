@@ -1,7 +1,7 @@
 package com.screening.profile.controller;
 
 import com.screening.profile.model.JobApplication;
-import com.screening.profile.service.JobApplicationService;
+import com.screening.profile.service.jobapplication.JobApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/applications")
+@RequestMapping("/api/v1/applications")
 public class JobApplicationController {
     
     private final JobApplicationService jobApplicationService;
@@ -19,15 +19,15 @@ public class JobApplicationController {
         this.jobApplicationService = jobApplicationService;
     }
     
-    @PostMapping("/apply")
-    public ResponseEntity<?> applyForJob(@RequestParam Integer jobId, @RequestParam Long candidateId) {
-        try {
-            JobApplication application = jobApplicationService.applyForJob(jobId, candidateId);
-            return ResponseEntity.ok(application);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+//    @PostMapping("/apply")
+//    public ResponseEntity<?> applyForJob(@RequestParam Integer jobId, @RequestParam Long candidateId) {
+//        try {
+//            JobApplication application = jobApplicationService.applyForJob(jobId, candidateId);
+//            return ResponseEntity.ok(application);
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//    }
     
     @GetMapping("/candidate/{candidateId}")
     public ResponseEntity<List<JobApplication>> getApplicationsByCandidate(@PathVariable Long candidateId) {
@@ -41,17 +41,17 @@ public class JobApplicationController {
         return ResponseEntity.ok(applications);
     }
     
-    @PutMapping("/{applicationId}/status")
-    public ResponseEntity<?> updateApplicationStatus(
-            @PathVariable Integer applicationId, 
-            @RequestParam String status) {
-        try {
-            JobApplication application = jobApplicationService.updateApplicationStatus(applicationId, status);
-            return ResponseEntity.ok(application);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+//    @PutMapping("/{applicationId}/status")
+//    public ResponseEntity<?> updateApplicationStatus(
+//            @PathVariable Integer applicationId,
+//            @RequestParam String status) {
+//        try {
+//            JobApplication application = jobApplicationService.updateApplicationStatus(applicationId, status);
+//            return ResponseEntity.ok(application);
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//    }
     
     @GetMapping("/check")
     public ResponseEntity<Boolean> hasAlreadyApplied(

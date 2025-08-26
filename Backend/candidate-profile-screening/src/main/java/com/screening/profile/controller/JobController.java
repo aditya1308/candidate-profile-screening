@@ -1,13 +1,13 @@
 package com.screening.profile.controller;
 
 import com.screening.profile.model.Job;
-import com.screening.profile.service.JobService;
+import com.screening.profile.service.job.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/jobs")
+@RequestMapping("/api/v1/jobs")
 public class JobController {
     private final JobService jobService;
 

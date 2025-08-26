@@ -7,7 +7,8 @@ import java.io.IOException;
 import java.util.List;
 
 public interface CandidateService {
-    Candidate extractAndSaveCandidateDetails(MultipartFile resume, String text) throws IOException;
+    Candidate extractAndSaveCandidateDetails(MultipartFile resume, String text, Long jobId) throws IOException;
     List<Candidate> getAllCandidates();
     Candidate getCandidateById(Long id);
+    boolean saveCandidate(Candidate candidate);
 }

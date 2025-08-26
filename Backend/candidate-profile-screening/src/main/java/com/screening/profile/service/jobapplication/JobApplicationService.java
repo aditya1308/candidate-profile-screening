@@ -1,12 +1,12 @@
-package com.screening.profile.service;
+package com.screening.profile.service.jobapplication;
 
 import com.screening.profile.model.JobApplication;
 import java.util.List;
 
 public interface JobApplicationService {
-    JobApplication applyForJob(Integer jobId, Long candidateId);
+   // JobApplication applyForJob(Integer jobId, Long candidateId);
     boolean hasAlreadyApplied(Integer jobId, Long candidateId);
     List<JobApplication> getApplicationsByCandidate(Long candidateId);
     List<JobApplication> getApplicationsByJob(Integer jobId);
-    JobApplication updateApplicationStatus(Integer applicationId, String status);
+  //  JobApplication updateApplicationStatus(Integer applicationId, String status);
 }

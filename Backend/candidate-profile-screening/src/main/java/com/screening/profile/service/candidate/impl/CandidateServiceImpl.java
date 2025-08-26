@@ -2,7 +2,10 @@ package com.screening.profile.service.candidate.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.screening.profile.model.Candidate;
+import com.screening.profile.model.JobApplication;
 import com.screening.profile.repository.CandidateRepository;
+import com.screening.profile.repository.JobApplicationRepository;
+import com.screening.profile.service.job.JobService;
 import com.screening.profile.service.candidate.CandidateService;
 import com.screening.profile.util.enums.Status;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +16,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,13 +29,17 @@ import static com.screening.profile.util.parser.PdfParsingUtil.extractText;
 public class CandidateServiceImpl implements CandidateService {
 
     private final CandidateRepository candidateRepository;
+    private final JobApplicationRepository jobApplicationRepository;
+    private final JobService jobService;
 
-    public CandidateServiceImpl(CandidateRepository candidateRepository) {
+    public CandidateServiceImpl(CandidateRepository candidateRepository, JobApplicationRepository jobApplicationRepository, JobService jobService) {
         this.candidateRepository = candidateRepository;
+        this.jobApplicationRepository = jobApplicationRepository;
+        this.jobService = jobService;
     }
 
     @Override
-    public Candidate extractAndSaveCandidateDetails(MultipartFile resume, String text) throws IOException {
+    public Candidate extractAndSaveCandidateDetails(MultipartFile resume, String text, Long jobId) throws IOException {
         String resumeText = extractText(resume);
         Candidate candidate = new Candidate();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -39,10 +47,20 @@ public class CandidateServiceImpl implements CandidateService {
         String name = extractName(resumeText, candidate);
         String phone = extractPhone(resumeText);
         String uniqueId = createUniqueId(name, email, phone);
-//        if(!candidateRepository.findByUniqueId(uniqueId).isEmpty()){
-//            log.info("Candidate already exists");
-//            return null;
-//        }
+        List<JobApplication> apppliedJobList = jobApplicationRepository.findByJobId(jobId);
+        JobApplication jobApplication = apppliedJobList.stream()
+                .filter(jobApp -> jobApp.getCandidate().getUniqueId()
+                .equals(uniqueId)).findFirst()
+                .orElse(null);
+
+
+        if(jobApplication != null){
+            Long id = jobApplication.getCandidate().getId();
+            if(candidateRepository.findById(id).isPresent()) {
+                log.info("Candidate already exists");
+                return null;
+            }
+        }
         String summary = objectMapper.readTree(text).get("summary").asText();
         Integer score = objectMapper.readTree(text).get("score").asInt();
         List<String> matchedSkills = objectMapper.readerForListOf(String.class).readValue(objectMapper.readTree(text).get("matchedSkills"));
@@ -58,11 +76,21 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setStatus(Status.IN_PROCESS);
         log.info(candidate.toString());
         candidateRepository.save(candidate);
+        JobApplication newJobApplication = new JobApplication();
+        newJobApplication.setCandidate(candidate);
+        newJobApplication.setJob(jobService.getJob(Math.toIntExact(jobId)).get());
+        newJobApplication.setApplicationDate(LocalDateTime.now());
+        jobApplicationRepository.save(newJobApplication);
         return candidate;
     }
 
     public List<Candidate> getAllCandidates(){
         return candidateRepository.findAll();
+    }
+
+    public boolean saveCandidate(Candidate candidate){
+        Candidate savedCandidate = candidateRepository.save(candidate);
+        return true;
     }
 
     public Candidate getCandidateById(Long id) {

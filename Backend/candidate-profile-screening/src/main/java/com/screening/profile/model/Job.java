@@ -1,13 +1,17 @@
 package com.screening.profile.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "jobs")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,13 +25,4 @@ public class Job {
 
     @Column(nullable = false)
     private String location;
-
-    public Job() {}
-
-    public Job(Integer id, String title, String description, String location) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.location = location;
-    }
 }

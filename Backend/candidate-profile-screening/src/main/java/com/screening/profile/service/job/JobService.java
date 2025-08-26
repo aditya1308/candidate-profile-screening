@@ -1,4 +1,4 @@
-package com.screening.profile.service;
+package com.screening.profile.service.job;
 
 import com.screening.profile.model.Job;
 import java.util.List;
@@ -9,5 +9,5 @@ public interface JobService {
     List<Job> searchJobs(String searchTerm);
     Job saveJob(Job job);
     Optional<Job> getJob(Integer id);
-    String getJobDescription(Integer id);
+    String getJobDescription(Long id);
 }

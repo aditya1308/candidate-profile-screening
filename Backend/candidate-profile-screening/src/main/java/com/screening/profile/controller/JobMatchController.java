@@ -26,8 +26,8 @@ public class JobMatchController {
         this.candidateService = candidateService;
     }
 
-    @PostMapping("/analyze-job")
-    public ResponseEntity<?> analyze(@RequestParam("resumePdf") MultipartFile resumePdf, @RequestParam("jobId") Integer jobId) throws Exception {
+    @PostMapping("/apply-job")
+    public ResponseEntity<?> analyze(@RequestParam("resumePdf") MultipartFile resumePdf, @RequestParam("jobId") Long jobId) throws Exception {
         log.info("JobController, file received");
         Candidate candidate = this.perplexityService.askPerplexityForPrompt(resumePdf, jobId);
         if (candidate == null) {
