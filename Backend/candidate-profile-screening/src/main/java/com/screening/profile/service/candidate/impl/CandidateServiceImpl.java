@@ -65,9 +65,28 @@ public class CandidateServiceImpl implements CandidateService {
         return candidateRepository.findAll();
     }
 
-    public Candidate getCandidateById(Long id){
+    public Candidate getCandidateById(Long id) {
         Optional<Candidate> candidate = candidateRepository.findById(id);
         return candidate.orElse(null);
+    }
+    public Candidate getOrCreateCandidate(String name, String email, String phone) {
+        String uniqueId = createUniqueId(name, email, phone);
+        Optional<Candidate> existingCandidate = candidateRepository.findByUniqueId(uniqueId);
+        
+        if (existingCandidate.isPresent()) {
+            return existingCandidate.get();
+        }
+        
+        // Create new candidate if not exists
+        Candidate candidate = new Candidate();
+        candidate.setName(name);
+        candidate.setEmail(email);
+        candidate.setPhoneNumber(phone);
+        candidate.setUniqueId(uniqueId);
+        candidate.setScore(0); // Default score
+        candidate.setSummary(""); // Default summary
+        
+        return candidateRepository.save(candidate);
     }
 
     public String createUniqueId(String name, String email, String phone)
