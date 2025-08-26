@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 
 import static com.screening.profile.util.ExtractorHelperUtils.*;
 import static com.screening.profile.util.ExtractorHelperUtils.extractName;
@@ -56,6 +57,32 @@ public class CandidateServiceImpl implements CandidateService {
         log.info(candidate.toString());
         candidateRepository.save(candidate);
         return candidate;
+    }
+
+    @Override
+    public Candidate getOrCreateCandidate(String name, String email, String phone) {
+        String uniqueId = createUniqueId(name, email, phone);
+        Optional<Candidate> existingCandidate = candidateRepository.findByUniqueId(uniqueId);
+        
+        if (existingCandidate.isPresent()) {
+            return existingCandidate.get();
+        }
+        
+        // Create new candidate if not exists
+        Candidate candidate = new Candidate();
+        candidate.setName(name);
+        candidate.setEmail(email);
+        candidate.setPhoneNumber(phone);
+        candidate.setUniqueId(uniqueId);
+        candidate.setScore(0); // Default score
+        candidate.setSummary(""); // Default summary
+        
+        return candidateRepository.save(candidate);
+    }
+
+    @Override
+    public Optional<Candidate> findByUniqueId(String uniqueId) {
+        return candidateRepository.findByUniqueId(uniqueId).stream().findFirst();
     }
 
     public String createUniqueId(String name, String email, String phone)
