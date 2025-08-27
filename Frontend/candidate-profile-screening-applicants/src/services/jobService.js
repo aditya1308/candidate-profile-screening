@@ -14,7 +14,8 @@ export const jobService = {
         id: job.id,
         title: job.title,
         description: job.description,
-        location: job.location
+        location: job.location,
+        requiredSkills: job.requiredSkills || ''
       }));
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -35,7 +36,8 @@ export const jobService = {
         id: job.id,
         title: job.title,
         description: job.description,
-        location: job.location
+        location: job.location,
+        requiredSkills: job.requiredSkills || ''
       }));
     } catch (error) {
       console.error('Error searching jobs:', error);
@@ -55,7 +57,8 @@ export const jobService = {
         id: job.id,
         title: job.title,
         description: job.description,
-        location: job.location
+        location: job.location,
+        requiredSkills: job.requiredSkills || ''
       };
     } catch (error) {
       console.error('Error fetching job:', error);

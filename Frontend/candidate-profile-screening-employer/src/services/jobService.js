@@ -21,7 +21,8 @@ export const jobService = {
         applications: job.applications || 0,
         department: job.department,
         requirements: job.requirements || [],
-        responsibilities: job.responsibilities || []
+        responsibilities: job.responsibilities || [],
+        requiredSkills: job.requiredSkills || ''
       }));
     } catch (error) {
       throw handleApiError(error, 'fetching all jobs');
@@ -48,7 +49,8 @@ export const jobService = {
         applications: job.applications || 0,
         department: job.department,
         requirements: job.requirements || [],
-        responsibilities: job.responsibilities || []
+        responsibilities: job.responsibilities || [],
+        requiredSkills: job.requiredSkills || ''
       }));
     } catch (error) {
       throw handleApiError(error, 'searching jobs');
@@ -60,6 +62,7 @@ export const jobService = {
       // Since we don't have a backend endpoint for single job, 
       // we'll fetch all jobs and find the one we need
       const allJobs = await this.getAllJobs();
+      console.log("Niiii",allJobs);
       const job = allJobs.find(job => job.id === jobId);
       
       if (!job) {

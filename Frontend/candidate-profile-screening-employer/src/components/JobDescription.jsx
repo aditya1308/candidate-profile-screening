@@ -1,4 +1,5 @@
 const JobDescription = ({ job }) => {
+  console.log(job);
   return (
     <div className="space-y-6">
       <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
@@ -18,20 +19,30 @@ const JobDescription = ({ job }) => {
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600">{job.type || 'Full-time'}</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">{job.experience || 'Not specified'}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">{job.salary || 'Competitive'}</span>
-          </div>
         </div>
+        
+        {job.requiredSkills && (
+          <div className="mb-6">
+            <h3 className="mb-3 text-sm font-medium text-gray-900">Required Skills</h3>
+            <div className="flex flex-wrap gap-2">
+              {job.requiredSkills.split(',').map((skill, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 text-xs font-medium border rounded-full text-sg-red bg-sg-red/10 border-sg-red/20"
+                >
+                  {skill.trim()}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <span>Posted on {job.postedDate ? new Date(job.postedDate).toLocaleDateString() : 'Recently'}</span>
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium text-gray-700">Applications:</span>
-            <span className="px-3 py-1 text-sm font-bold text-white bg-sg-red rounded-full">
+            <span className="px-3 py-1 text-sm font-bold text-white rounded-full bg-sg-red">
               {job.applications || 0}
             </span>
           </div>
