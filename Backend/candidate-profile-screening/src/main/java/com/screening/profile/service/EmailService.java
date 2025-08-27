@@ -15,7 +15,7 @@ public class EmailService {
 
     public void sendInterviewMail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("vaibhavvirat18@gmail.com");
+        message.setFrom("vaibhavkumar112623@gmail.com");
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
