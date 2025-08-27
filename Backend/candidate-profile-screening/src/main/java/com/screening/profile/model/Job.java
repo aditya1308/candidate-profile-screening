@@ -21,6 +21,9 @@ public class Job {
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
+    private String requiredSkills;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
