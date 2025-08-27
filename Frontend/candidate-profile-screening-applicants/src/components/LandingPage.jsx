@@ -1,4 +1,5 @@
 import { ArrowRight, Users, Globe, Zap, Award } from 'lucide-react';
+import Header from './Header';
 
 const LandingPage = ({ onExploreClick }) => {
   return (
@@ -9,25 +10,7 @@ const LandingPage = ({ onExploreClick }) => {
         <div className="absolute top-40 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] bg-gradient-to-tr from-accent-300 to-accent-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-tilt"></div>
       </div>
 
-      <header className="relative z-20 bg-white/80 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-secondary-900 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">SG</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Société Générale</h1>
-                <p className="text-sm text-gray-600">Careers</p>
-              </div>
-            </div>
-            <nav className="flex items-center space-x-6">
-              <a href="/about" className="text-gray-600 hover:text-gray-900 transition-colors">About</a>
-              <a href="/contact" className="text-gray-600 hover:text-gray-900 transition-colors">Contact</a>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header className="relative z-20 bg-white/80 backdrop-blur-sm" />
 
       <div className="relative z-10 h-full flex items-center">
         <div className="max-w-7xl mx-auto px-6 py-8 w-full">

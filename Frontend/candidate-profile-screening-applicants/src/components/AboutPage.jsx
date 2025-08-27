@@ -1,22 +1,13 @@
 import { Users, Globe, Zap, Award, Building, Target, Heart } from 'lucide-react';
+import Header from './Header';
 
 const AboutPage = ({ onBackToLanding }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary-50 via-white to-accent-50">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-secondary-900 rounded-lg flex items-center justify-center"><span className="text-white font-bold text-lg">SG</span></div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Société Générale</h1>
-                <p className="text-sm text-gray-600">About Us</p>
-              </div>
-            </div>
-            <button onClick={onBackToLanding} className="text-primary-600 hover:text-primary-700 font-medium transition-colors">← Back to Home</button>
-          </div>
-        </div>
-      </header>
+      <Header 
+        showBackButton={true}
+        onBackClick={onBackToLanding}
+      />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="text-center mb-16">

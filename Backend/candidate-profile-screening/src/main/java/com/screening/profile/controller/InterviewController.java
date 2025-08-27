@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/interview")
+@CrossOrigin("*")
 @Slf4j
 public class InterviewController {
 

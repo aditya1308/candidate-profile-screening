@@ -8,6 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/jobs")
+@CrossOrigin("*")
 public class JobController {
     private final JobService jobService;
 
