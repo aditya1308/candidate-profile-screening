@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/interview")
+@CrossOrigin("*")
 @Slf4j
 public class InterviewController {
 

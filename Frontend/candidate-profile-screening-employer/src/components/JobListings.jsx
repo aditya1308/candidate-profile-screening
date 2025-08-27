@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Clock, DollarSign, Users, Calendar } from 'lucide-react';
+import { MapPin, Clock, Users, Calendar } from 'lucide-react';
 
 const JobListings = ({ jobs, onJobClick, userType = 'applicant' }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -88,17 +88,18 @@ const JobListings = ({ jobs, onJobClick, userType = 'applicant' }) => {
                   <Clock className="w-4 h-4 mr-2" />
                   <span className="text-sm">{job.type}</span>
                 </div>
-                <div className="flex items-center text-gray-600">
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  <span className="text-sm">{job.salary}</span>
-                </div>
+
                 <div className="flex items-center text-gray-600">
                   <Users className="w-4 h-4 mr-2" />
                   <span className="text-sm">{job.experience}</span>
                 </div>
                 <div className="flex items-center text-gray-600">
                   <Calendar className="w-4 h-4 mr-2" />
-                  <span className="text-sm">Posted {new Date(job.postedDate).toLocaleDateString()}</span>
+                  <span className="text-sm">Posted {new Date(job.postedDate).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
                 </div>
               </div>
 
