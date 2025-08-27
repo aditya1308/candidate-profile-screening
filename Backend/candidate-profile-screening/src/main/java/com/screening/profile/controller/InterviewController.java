@@ -1,11 +1,14 @@
 package com.screening.profile.controller;
 
+import com.screening.profile.dto.InterviewDTO;
 import com.screening.profile.model.Interview;
 import com.screening.profile.service.interview.InterviewService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/interview")
@@ -28,5 +31,10 @@ public class InterviewController {
                     .body("Interview cannot be created for candidate with id : " + id);
         }
         return ResponseEntity.ok().body(interview);
+    }
+
+    @GetMapping
+    public List<InterviewDTO> getAllInterviews(){
+        return this.interviewService.getAllInterviews();
     }
 }
