@@ -272,18 +272,70 @@ export const users = [
   {
     id: 1,
     email: "hr@techcorp.com",
-    password: "password123",
-    name: "Sarah Johnson",
-    role: "talent-acquisition",
-    department: "Human Resources"
+    password: "hr123",
+    role: "HR",
+    name: "Sarah Johnson"
   },
   {
     id: 2,
-    email: "interview@techcorp.com",
-    password: "password123",
-    name: "Mike Chen",
-    role: "interview-team",
-    department: "Engineering"
+    email: "interviewer@techcorp.com",
+    password: "int123",
+    role: "Interviewer",
+    name: "Mike Chen"
+  }
+];
+
+// Mock applicant data with different stages
+export const applicants = [
+  {
+    id: 1,
+    jobId: 1,
+    name: "John Doe",
+    email: "john@example.com",
+    experience: "4 years",
+    stage: "resume_selected",
+    appliedDate: "2024-01-20",
+    resumeUrl: "path/to/resume1.pdf"
+  },
+  {
+    id: 2,
+    jobId: 1,
+    name: "Jane Smith",
+    email: "jane@example.com",
+    experience: "3 years",
+    stage: "round1",
+    appliedDate: "2024-01-21",
+    resumeUrl: "path/to/resume2.pdf"
+  },
+  {
+    id: 3,
+    jobId: 1,
+    name: "Bob Wilson",
+    email: "bob@example.com",
+    experience: "5 years",
+    stage: "round2",
+    appliedDate: "2024-01-19",
+    resumeUrl: "path/to/resume3.pdf"
+  },
+  {
+    id: 4,
+    jobId: 1,
+    name: "Alice Brown",
+    email: "alice@example.com",
+    experience: "6 years",
+    stage: "round3",
+    appliedDate: "2024-01-18",
+    resumeUrl: "path/to/resume4.pdf"
+  },
+  {
+    id: 5,
+    jobId: 1,
+    name: "Charlie Davis",
+    email: "charlie@example.com",
+    experience: "4 years",
+    stage: "hiring",
+    appliedDate: "2024-01-17",
+    resumeUrl: "path/to/resume5.pdf"
   }
 ];
 
