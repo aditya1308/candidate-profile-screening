@@ -50,7 +50,7 @@ const HRJobDetailsPage = () => {
             <p className="text-red-600">Error: {error || 'Job not found'}</p>
             <Link 
               to="/dashboard"
-              className="inline-flex items-center px-4 py-2 mt-4 text-white transition-colors rounded-lg bg-sg-red hover:bg-red-700"
+              className="inline-flex items-center px-4 py-2 mt-4 text-white transition-colors rounded-lg bg-sg-red hover:bg-sg-red-dark"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Jobs
