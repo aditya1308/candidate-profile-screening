@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, X, Eye, Download, Phone, Mail, Calendar, Star, User, FileText, Tag, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, X, Eye, Download, Phone, Mail, Calendar, Star, User, FileText, Tag, ChevronDown, ChevronUp, Copy, CheckCircle } from 'lucide-react';
 import { candidateService } from '../services/candidateService';
 import Button3D from './Button3D';
 
@@ -12,6 +12,9 @@ const ApplicantManagement = ({ jobId }) => {
   const [selectedResume, setSelectedResume] = useState(null);
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [expandedCards, setExpandedCards] = useState(new Set());
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
 
   useEffect(() => {
     fetchCandidates();
@@ -155,6 +158,41 @@ const ApplicantManagement = ({ jobId }) => {
     return 'bg-red-100 text-red-800 border-red-200';
   };
 
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setToastMessage('Phone number copied to clipboard!');
+      setToastType('success');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (err) {
+      setToastMessage('Failed to copy phone number');
+      setToastType('error');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
+  const openEmailClient = (email, candidateName) => {
+    try {
+      const subject = encodeURIComponent(`Regarding your application - ${candidateName}`);
+      const body = encodeURIComponent(`Dear ${candidateName},\n\nThank you for your interest in our position.\n\nBest regards,\n[Your Name]`);
+      const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
+      
+      window.open(mailtoLink, '_blank');
+      
+      setToastMessage('Email client opened successfully!');
+      setToastType('success');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (err) {
+      setToastMessage('Failed to open email client');
+      setToastType('error');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
   const tabs = [
     { id: 'applied', label: 'Applied', status: 'IN_PROCESS', count: allCandidates.filter(c => c.status === 'IN_PROCESS').length },
     { id: 'round1', label: 'Round 1', status: 'IN_PROCESS_ROUND1', count: allCandidates.filter(c => c.status === 'IN_PROCESS_ROUND1').length },
@@ -188,11 +226,27 @@ const ApplicantManagement = ({ jobId }) => {
                                                 <div className="flex items-center mt-1 space-x-3 text-xs text-gray-600">
                    <div className="flex items-center">
                      <Mail className="w-4 h-4 mr-1 hover:animate-float" />
-                     <span className="truncate">{candidate.email}</span>
+                     <button
+                       onClick={() => openEmailClient(candidate.email, candidate.name)}
+                       className="flex items-center hover:text-blue-600 transition-colors duration-200 group"
+                       title="Click to send email"
+                     >
+                       <span className="truncate">{candidate.email}</span>
+                       <svg className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                       </svg>
+                     </button>
                    </div>
                    <div className="flex items-center">
                      <Phone className="w-4 h-4 mr-1 hover:animate-float" />
-                     {candidate.phoneNumber}
+                     <button
+                       onClick={() => copyToClipboard(candidate.phoneNumber)}
+                       className="flex items-center hover:text-blue-600 transition-colors duration-200 group"
+                       title="Click to copy phone number"
+                     >
+                       <span className="truncate">{candidate.phoneNumber}</span>
+                       <Copy className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                     </button>
                    </div>
                    <div className="flex items-center">
                      <Calendar className="w-4 h-4 mr-1 hover:animate-float" />
@@ -546,8 +600,26 @@ const ApplicantManagement = ({ jobId }) => {
         )}
       </div>
 
-      {/* Resume Preview Modal */}
-      {showResumeModal && selectedResume && (
+             {/* Toast Notification */}
+       {showToast && (
+         <div className="fixed top-4 right-4 z-50 animate-fadeIn">
+           <div className={`flex items-center px-4 py-3 rounded-lg shadow-lg border-l-4 ${
+             toastType === 'success' 
+               ? 'bg-green-50 border-green-400 text-green-800' 
+               : 'bg-red-50 border-red-400 text-red-800'
+           }`}>
+             {toastType === 'success' ? (
+               <CheckCircle className="w-5 h-5 mr-2" />
+             ) : (
+               <X className="w-5 h-5 mr-2" />
+             )}
+             <span className="text-sm font-medium">{toastMessage}</span>
+           </div>
+         </div>
+       )}
+
+       {/* Resume Preview Modal */}
+       {showResumeModal && selectedResume && (
         <div className="fixed inset-0 z-50 w-full h-full overflow-y-auto bg-gray-600 bg-opacity-50">
           <div className="relative w-11/12 p-5 mx-auto bg-white border rounded-md shadow-lg top-20 md:w-3/4 lg:w-1/2">
             <div className="mt-3">
