@@ -3,7 +3,6 @@ package com.screening.profile.controller;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.service.PerplexityService;
 import com.screening.profile.service.candidate.CandidateService;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
