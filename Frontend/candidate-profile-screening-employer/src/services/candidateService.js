@@ -40,7 +40,9 @@ export const candidateService = {
         throw new Error('Failed to update candidate status');
       }
       
-      return await response.json();
+      // The backend returns plain text, not JSON
+      const result = await response.text();
+      return { message: result };
     } catch (error) {
       throw handleApiError(error, 'updating candidate status');
     }
