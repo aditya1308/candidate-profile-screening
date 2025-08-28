@@ -21,10 +21,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.screening.profile.util.ExtractorHelperUtils.*;
-import static com.screening.profile.util.ExtractorHelperUtils.extractName;
-import static com.screening.profile.util.parser.PdfParsingUtil.extractText;
-
 @Service
 @Slf4j
 public class CandidateServiceImpl implements CandidateService {
