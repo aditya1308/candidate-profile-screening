@@ -368,7 +368,7 @@ const ApplicantManagement = ({ jobId }) => {
                   <p className="text-gray-600 font-medium">Resume: {selectedResume}</p>
                   <button
                     onClick={() => downloadResume(selectedResume, 'Candidate')}
-                    className="flex items-center px-3 py-1 text-sm text-white bg-sg-red rounded hover:bg-red-700 transition-colors duration-200"
+                    className="flex items-center px-3 py-1 text-sm text-white bg-sg-red rounded hover:bg-sg-red-dark transition-colors duration-200"
                   >
                     <Download className="w-4 h-4 mr-1" />
                     Download

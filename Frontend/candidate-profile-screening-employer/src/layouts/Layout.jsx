@@ -3,6 +3,7 @@ import { useAuth } from '../context/useAuth';
 import { useState, useRef, useEffect } from 'react';
 import SGLogo from '../assets/SG.svg';
 import { stringUtils } from '../services/utilityService';
+import Footer from '../components/Footer';
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -99,9 +100,10 @@ const Header = () => {
 
 const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-sg-gray">
+    <div className="min-h-screen bg-sg-gray pb-16">
       <Header />
       <main className="pt-16">{children}</main>
+      <Footer />
     </div>
   );
 };

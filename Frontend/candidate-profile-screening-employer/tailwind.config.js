@@ -34,7 +34,8 @@ export default {
           900: '#0f172a',
         },
                  sg: {
-           red: '#e20017',
+           red: '#E9041E',
+           'red-dark': '#C00418',
            black: '#1b1918',
            white: '#ffffff',
            gray: '#f8f9fa'

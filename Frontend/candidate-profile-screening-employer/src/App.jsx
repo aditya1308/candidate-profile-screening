@@ -24,7 +24,7 @@ const ProtectedLayout = ({ children }) => {
 
 function App() {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true }}>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />

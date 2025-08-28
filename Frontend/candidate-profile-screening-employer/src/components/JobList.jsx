@@ -53,7 +53,7 @@ const JobList = () => {
             <p className="text-red-600">Error: {error}</p>
             <button 
               onClick={fetchJobs}
-              className="px-4 py-2 mt-4 text-white transition-colors rounded-lg bg-sg-red hover:bg-red-700"
+              className="px-4 py-2 mt-4 text-white transition-colors rounded-lg bg-sg-red hover:bg-sg-red-dark"
             >
               Retry
             </button>
@@ -108,7 +108,7 @@ const JobList = () => {
 
               <div className="mt-auto pt-4">
                 <Button3D 
-                  buttonColor="bg-red-500" 
+                  buttonColor="bg-sg-red" 
                   shadowColor="bg-black"
                 >
                   View Details
