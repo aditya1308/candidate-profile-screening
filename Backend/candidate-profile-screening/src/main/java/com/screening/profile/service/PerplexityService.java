@@ -2,6 +2,7 @@ package com.screening.profile.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.screening.profile.dto.CandidateReqDTO;
 import com.screening.profile.exception.ServiceException;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.model.Job;
@@ -39,13 +40,13 @@ public class PerplexityService {
         this.jobService = jobService;
     }
 
-    public Candidate askPerplexityForPrompt(MultipartFile resumeFile, Long jobId) throws Exception {
+    public Candidate askPerplexityForPrompt(MultipartFile resumeFile, Long jobId, CandidateReqDTO candidateReqDTO) throws Exception {
         String resume = extractText(resumeFile);
 
         // If disabled or no API key provided, fallback locally
         if (!enabled || apiKey == null || apiKey.isBlank()) {
             String fallback = makeFallbackJson(resume, jobService.getJobDescription(jobId));
-            return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId);
+            return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId, candidateReqDTO);
         }
 
         Map<String, Object> payload = new HashMap<>();
@@ -87,7 +88,7 @@ public class PerplexityService {
             if (response.statusCode() != 200) {
                 // Graceful fallback on 4xx/5xx
                 String fallback = makeFallbackJson(resume, jobDescriptionWithSkills);
-                return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId);
+                return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId, candidateReqDTO);
             }
 
             JsonNode rootNode = objectMapper.readTree(response.body());
@@ -98,7 +99,7 @@ public class PerplexityService {
                 if (message != null) {
                     JsonNode contentNode = message.get("content");
                     if (contentNode != null) {
-                        Candidate candidate = candidateService.extractAndSaveCandidateDetails(resumeFile, contentNode.asText(), jobId);
+                        Candidate candidate = candidateService.extractAndSaveCandidateDetails(resumeFile, contentNode.asText(), jobId, candidateReqDTO);
                         if (Optional.ofNullable(candidate).isEmpty()){
                             return null;
                         }
@@ -110,7 +111,7 @@ public class PerplexityService {
         } catch (Exception ex) {
             // Network/auth errors -> fallback
             String fallback = makeFallbackJson(resume, jobDescriptionWithSkills);
-            return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId);
+            return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId, candidateReqDTO);
         }
     }
 

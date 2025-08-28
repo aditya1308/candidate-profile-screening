@@ -1,6 +1,7 @@
 package com.screening.profile.service.candidate.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.screening.profile.dto.CandidateReqDTO;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.model.JobApplication;
 import com.screening.profile.repository.CandidateRepository;
@@ -40,13 +41,12 @@ public class CandidateServiceImpl implements CandidateService {
     }
 
     @Override
-    public Candidate extractAndSaveCandidateDetails(MultipartFile resume, String text, Long jobId) throws IOException {
-        String resumeText = extractText(resume);
+    public Candidate extractAndSaveCandidateDetails(MultipartFile resume, String text, Long jobId, CandidateReqDTO candidateReqDTO) throws IOException {
         Candidate candidate = new Candidate();
         ObjectMapper objectMapper = new ObjectMapper();
-        String email = extractEmail(resumeText);
-        String name = extractName(resumeText, candidate);
-        String phone = extractPhone(resumeText);
+        String email = candidateReqDTO.getEmail();
+        String name = candidateReqDTO.getName();
+        String phone = candidateReqDTO.getPhoneNumber();
         String uniqueId = createUniqueId(name, email, phone);
         List<JobApplication> apppliedJobList = jobApplicationRepository.findByJobId(jobId);
         JobApplication jobApplication = apppliedJobList.stream()
@@ -54,7 +54,7 @@ public class CandidateServiceImpl implements CandidateService {
                 .equals(uniqueId)).findFirst()
                 .orElse(null);
 
-
+        // Duplicacy logic needs to be checked
         if(jobApplication != null){
             Long id = jobApplication.getCandidate().getId();
             if(candidateRepository.findById(id).isPresent()) {
@@ -67,8 +67,8 @@ public class CandidateServiceImpl implements CandidateService {
         List<String> matchedSkills = objectMapper.readerForListOf(String.class).readValue(objectMapper.readTree(text).get("matchedSkills"));
         candidate.setEmail(email);
         candidate.setPhoneNumber(phone);
-        candidate.setDateOfBirth(extractDob(resumeText));
-        candidate.setName(name);
+        candidate.setDateOfBirth(candidateReqDTO.getDob());
+        candidate.setName(candidateReqDTO.getName());
         candidate.setScore(score);
         candidate.setSummary(summary);
         candidate.setFileData(resume.getBytes());

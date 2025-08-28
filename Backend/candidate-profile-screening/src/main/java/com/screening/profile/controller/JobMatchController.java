@@ -1,5 +1,6 @@
 package com.screening.profile.controller;
 
+import com.screening.profile.dto.CandidateReqDTO;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.service.PerplexityService;
 import com.screening.profile.service.candidate.CandidateService;
@@ -29,9 +30,15 @@ public class JobMatchController {
     }
 
     @PostMapping("/apply-job")
-    public ResponseEntity<?> analyze(@RequestParam("resumePdf") MultipartFile resumePdf, @RequestParam("jobId") Long jobId) throws Exception {
+    public ResponseEntity<?> analyze(@RequestParam("resumePdf") MultipartFile resumePdf, @RequestParam("jobId") Long jobId, @RequestParam String name,
+                                     @RequestParam String email, @RequestParam String phoneNumber, @RequestParam String dob) throws Exception {
         log.info("JobController, file received");
-        Candidate candidate = this.perplexityService.askPerplexityForPrompt(resumePdf, jobId);
+        CandidateReqDTO candidateReqDTO = new CandidateReqDTO();
+        candidateReqDTO.setName(name);
+        candidateReqDTO.setEmail(email);
+        candidateReqDTO.setPhoneNumber(phoneNumber);
+        candidateReqDTO.setDob(dob);
+        Candidate candidate = this.perplexityService.askPerplexityForPrompt(resumePdf, jobId, candidateReqDTO);
         if (candidate == null) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
