@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.screening.profile.exception.ServiceException;
 import com.screening.profile.model.Candidate;
+import com.screening.profile.model.Job;
 import com.screening.profile.service.candidate.CandidateService;
 import com.screening.profile.service.job.JobService;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +53,13 @@ public class PerplexityService {
         payload.put("max_tokens", 500);
         payload.put("temperature", 0.7);
 
-        String jobDescription = jobService.getJobDescription(jobId);
+        String jobDescriptionWithSkills = "";
+        Optional<Job> job = jobService.getJob(Math.toIntExact(jobId));
+        if(job.isPresent()){
+            jobDescriptionWithSkills = jobDescriptionWithSkills + job.get().getDescription();
+            jobDescriptionWithSkills = jobDescriptionWithSkills + " Requrired Skills : ";
+            jobDescriptionWithSkills = jobDescriptionWithSkills + job.get().getRequiredSkills();
+        }
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of(
                 "role", "system",
@@ -60,7 +67,7 @@ public class PerplexityService {
         ));
         messages.add(Map.of(
                 "role", "user",
-                "content", String.format("Resume: %s\nJob Description: %s", resume, jobDescription)
+                "content", String.format("Resume: %s\nJob Description: %s", resume, jobDescriptionWithSkills)
         ));
         payload.put("messages", messages);
 
@@ -79,7 +86,7 @@ public class PerplexityService {
 
             if (response.statusCode() != 200) {
                 // Graceful fallback on 4xx/5xx
-                String fallback = makeFallbackJson(resume, jobDescription);
+                String fallback = makeFallbackJson(resume, jobDescriptionWithSkills);
                 return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId);
             }
 
@@ -102,7 +109,7 @@ public class PerplexityService {
             throw new ServiceException(String.valueOf(response.statusCode()),"Invalid response structure from Perplexity API");
         } catch (Exception ex) {
             // Network/auth errors -> fallback
-            String fallback = makeFallbackJson(resume, jobDescription);
+            String fallback = makeFallbackJson(resume, jobDescriptionWithSkills);
             return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId);
         }
     }

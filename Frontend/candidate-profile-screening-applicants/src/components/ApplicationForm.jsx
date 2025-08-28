@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { ArrowLeft, Upload, Send, MapPin, Clock, Users, Calendar, Building, Briefcase, Award, CheckCircle, Zap, AlertCircle, X } from 'lucide-react';
 import { applicationService } from '../services/applicationService.js';
-import Header from './Header';
 
-const ApplicationForm = ({ job, onBack, onSubmit }) => {
+const ApplicationForm = ({ job, onSubmit }) => {
   // Helper function to format date safely
   const formatPostedDate = (dateString) => {
     if (!dateString) return 'Recently';
@@ -31,16 +30,6 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
   const [popupType, setPopupType] = useState('error'); // 'error' or 'success'
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
-    // Clear submit error when user starts typing
-    if (errors.submit) setErrors(prev => ({ ...prev, submit: '' }));
-    // Clear popup when user starts typing
-    if (showPopup) setShowPopup(false);
-  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -108,39 +97,52 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
   };
 
     return (
-    <div className="min-h-screen bg-gray-50 py-6">
+    <div className="min-h-screen py-6 bg-gray-50">
       <div className="px-6 mx-auto max-w-7xl">
                  {/* Top Section: Job Details and Description Side by Side */}
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+         <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
            {/* Job Details Card */}
-           <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl card flex flex-col">
+           <div className="flex flex-col p-6 bg-white border border-gray-200 shadow-sm rounded-xl card">
              <div className="flex items-start justify-between mb-4">
                <div className="flex-1">
                  <h1 className="mb-2 text-xl font-bold text-gray-900 line-clamp-2">{job.title}</h1>
                  <p className="mb-3 text-base text-gray-600">Société Générale</p>
                </div>
-               <div className="px-3 py-1 text-sm font-medium rounded-full bg-primary-100 text-primary-800 ml-4 flex-shrink-0">Active</div>
+               <div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-medium rounded-full bg-primary-100 text-primary-800">Active</div>
              </div>
-             <div className="space-y-3 mb-4 flex-1">
-               <div className="flex items-center space-x-2"><MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" /><span className="text-sm text-gray-600">{job.location}</span></div>
-               <div className="flex items-center space-x-2"><Clock className="w-4 h-4 text-gray-500 flex-shrink-0" /><span className="text-sm text-gray-600">Full-time</span></div>
-               <div className="flex items-center space-x-2"><Users className="w-4 h-4 text-gray-500 flex-shrink-0" /><span className="text-sm text-gray-600">2-5 years</span></div>
-               <div className="flex items-center space-x-2 text-sm text-gray-500"><Calendar className="w-4 h-4 flex-shrink-0" /><span>Posted on {formatPostedDate(job.postedDate)}</span></div>
+             <div className="flex-1 mb-4 space-y-3">
+               <div className="flex items-center space-x-2"><MapPin className="flex-shrink-0 w-4 h-4 text-gray-500" /><span className="text-sm text-gray-600">{job.location}</span></div>
+               <div className="flex items-center space-x-2"><Clock className="flex-shrink-0 w-4 h-4 text-gray-500" /><span className="text-sm text-gray-600">Full-time</span></div>
+               <div className="flex items-center space-x-2"><Users className="flex-shrink-0 w-4 h-4 text-gray-500" /><span className="text-sm text-gray-600">2-5 years</span></div>
+               <div className="flex items-center space-x-2 text-sm text-gray-500"><Calendar className="flex-shrink-0 w-4 h-4" /><span>Posted on {formatPostedDate(job.postedDate)}</span></div>
              </div>
-             <div className="text-xs text-gray-500 mt-auto">• Open for applications</div>
+             <div className="mt-auto text-xs text-gray-500">• Open for applications</div>
            </div>
            
            {/* Job Description Card */}
-           <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl card flex flex-col">
+           <div className="flex flex-col p-6 bg-white border border-gray-200 shadow-sm rounded-xl card">
              <h2 className="mb-4 text-lg font-semibold text-gray-900">Job Description</h2>
-             <p className="mb-4 leading-relaxed text-gray-600 text-sm flex-1">{job.description}</p>
+             <p className="flex-1 mb-4 text-sm leading-relaxed text-gray-600">{job.description}</p>
                             <div className="mt-auto">
-                 <h3 className="flex items-center mb-3 font-semibold text-gray-900 text-sm"><CheckCircle className="w-4 h-4 mr-2 text-primary-600 flex-shrink-0" />Key Requirements</h3>
-                 <ul className="space-y-2">
-                   <li className="flex items-start space-x-2"><span className="flex-shrink-0 w-1.5 h-1.5 mt-1.5 rounded-full bg-primary-400"></span><span className="text-sm text-gray-600">Strong problem-solving skills</span></li>
-                   <li className="flex items-start space-x-2"><span className="flex-shrink-0 w-1.5 h-1.5 mt-1.5 rounded-full bg-primary-400"></span><span className="text-sm text-gray-600">Excellent communication abilities</span></li>
-                   <li className="flex items-start space-x-2"><span className="flex-shrink-0 w-1.5 h-1.5 mt-1.5 rounded-full bg-primary-400"></span><span className="text-sm text-gray-600">Strong analytical thinking</span></li>
-                 </ul>
+                 <h3 className="flex items-center mb-3 text-sm font-semibold text-gray-900"><CheckCircle className="flex-shrink-0 w-4 h-4 mr-2 text-primary-600" />Required Skills</h3>
+                 {job.requiredSkills ? (
+                   <div className="flex flex-wrap gap-2">
+                     {job.requiredSkills.split(',').map((skill, index) => (
+                       <span
+                         key={index}
+                         className="px-2 py-1 text-xs font-medium border rounded-full text-primary-700 bg-primary-100 border-primary-200"
+                       >
+                         {skill.trim()}
+                       </span>
+                     ))}
+                   </div>
+                 ) : (
+                   <ul className="space-y-2">
+                     <li className="flex items-start space-x-2"><span className="flex-shrink-0 w-1.5 h-1.5 mt-1.5 rounded-full bg-primary-400"></span><span className="text-sm text-gray-600">Strong problem-solving skills</span></li>
+                     <li className="flex items-start space-x-2"><span className="flex-shrink-0 w-1.5 h-1.5 mt-1.5 rounded-full bg-primary-400"></span><span className="text-sm text-gray-600">Excellent communication abilities</span></li>
+                     <li className="flex items-start space-x-2"><span className="flex-shrink-0 w-1.5 h-1.5 mt-1.5 rounded-full bg-primary-400"></span><span className="text-sm text-gray-600">Strong analytical thinking</span></li>
+                   </ul>
+                 )}
                </div>
            </div>
          </div>
@@ -165,11 +167,11 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                   {formData.resume && (<p className="text-sm font-medium text-green-600">✓ {formData.resume.name}</p>)}
                 </div>
               </div>
-              {errors.resume && (<p className="mt-1 text-sm text-red-500"><AlertCircle className="w-4 h-4 mr-1 inline-block" /> {errors.resume}</p>)}
+              {errors.resume && (<p className="mt-1 text-sm text-red-500"><AlertCircle className="inline-block w-4 h-4 mr-1" /> {errors.resume}</p>)}
             </div>
             
             {errors.submit && (
-              <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-400 rounded-lg flex items-start">
+              <div className="flex items-start p-3 text-sm text-red-700 bg-red-100 border border-red-400 rounded-lg">
                 <AlertCircle className="w-4 h-4 mr-2 text-red-500" />
                 {errors.submit}
               </div>
@@ -186,7 +188,7 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
       
       {/* Popup Notification */}
       {showPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <div className={`bg-white rounded-lg shadow-xl max-w-md w-full p-6 ${popupType === 'error' ? 'border-l-4 border-red-500' : 'border-l-4 border-green-500'}`}>
             <div className="flex items-start">
               <div className={`flex-shrink-0 ${popupType === 'error' ? 'text-red-500' : 'text-green-500'}`}>
@@ -196,7 +198,7 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                   <CheckCircle className="w-6 h-6" />
                 )}
               </div>
-              <div className="ml-3 flex-1">
+              <div className="flex-1 ml-3">
                 <h3 className={`text-lg font-medium ${popupType === 'error' ? 'text-red-800' : 'text-green-800'}`}>
                   {popupType === 'error' ? 'Application Error' : 'Success'}
                 </h3>
@@ -206,12 +208,12 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
               </div>
               <button
                 onClick={() => setShowPopup(false)}
-                className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 ml-4 text-gray-400 transition-colors hover:text-gray-600"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="mt-4 flex justify-end">
+            <div className="flex justify-end mt-4">
               <button
                 onClick={() => setShowPopup(false)}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
