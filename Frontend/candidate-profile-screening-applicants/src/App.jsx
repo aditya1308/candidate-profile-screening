@@ -4,7 +4,6 @@ import JobListings from './components/JobListings.jsx'
 import ApplicationForm from './components/ApplicationForm.jsx'
 import AboutPage from './components/AboutPage.jsx'
 import ContactPage from './components/ContactPage.jsx'
-import Header from './components/Header.jsx'
 import { jobService } from './services/jobService.js'
 import { useState, useEffect } from 'react'
 
@@ -43,25 +42,22 @@ const ApplicantRoutes = () => {
   const handleBackToLanding = () => { setCurrentPage('landing'); setSelectedJob(null); setSubmittedApplication(null) }
 
   if (currentPage === 'landing') return <LandingPage onExploreClick={handleExploreClick} />
-  if (currentPage === 'jobs') return (
-    <div>
-      <Header 
-        showBackButton={true}
-        backButtonText="← Back to Home"
-        onBackClick={handleBackToLanding}
-      />
-      
-      {loading && (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+  
+  if (currentPage === 'jobs') {
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-sg-gray flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sg-red mx-auto mb-4"></div>
             <p className="text-gray-600">Loading job openings...</p>
           </div>
         </div>
-      )}
-      
-      {error && (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      )
+    }
+    
+    if (error) {
+      return (
+        <div className="min-h-screen bg-sg-gray flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,39 +66,37 @@ const ApplicantRoutes = () => {
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-2">Error Loading Jobs</h1>
             <p className="text-gray-600 mb-6">{error}</p>
-            <button onClick={fetchJobs} className="btn-primary w-full mb-3">Try Again</button>
-            <button onClick={handleBackToLanding} className="btn-secondary w-full">Back to Home</button>
+            <button onClick={fetchJobs} className="w-full py-3 px-6 text-white font-semibold bg-sg-red hover:bg-sg-red/90 transition-all duration-200 rounded-lg mb-3">Try Again</button>
+            <button onClick={handleBackToLanding} className="w-full py-3 px-6 text-sg-red font-semibold border border-sg-red hover:bg-sg-red/10 transition-all duration-200 rounded-lg">Back to Home</button>
           </div>
         </div>
-      )}
-      
-      {!loading && !error && (
-        <JobListings jobs={jobs} onJobClick={handleJobClick} userType="applicant" />
-      )}
-    </div>
-  )
-  if (currentPage === 'apply' && selectedJob) return (
-    <div>
-      <Header 
-        showBackButton={true}
-        backButtonText="← Back to Jobs"
-        onBackClick={handleBackToJobs}
-      />
-      <ApplicationForm job={selectedJob} onBack={handleBackToJobs} onSubmit={handleApplicationSubmit} />
-    </div>
-  )
-  if (currentPage === 'success' && submittedApplication) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+      )
+    }
+    
+    return <JobListings jobs={jobs} onJobClick={handleJobClick} userType="applicant" />
+  }
+  
+  if (currentPage === 'apply' && selectedJob) {
+    return <ApplicationForm job={selectedJob} onBack={handleBackToJobs} onSubmit={handleApplicationSubmit} />
+  }
+  
+  if (currentPage === 'success' && submittedApplication) {
+    return (
+      <div className="min-h-screen bg-sg-gray flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h1>
+          <p className="text-gray-600 mb-6">Thank you for your application. We've received your submission and will review it carefully.</p>
+          <button onClick={handleBackToLanding} className="w-full py-3 px-6 text-white font-semibold bg-sg-red hover:bg-sg-red/90 transition-all duration-200 rounded-lg">Back to Home</button>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h1>
-        <p className="text-gray-600 mb-6">Thank you for your application. We've received your submission and will review it carefully.</p>
-        <button onClick={handleBackToLanding} className="btn-primary w-full">Back to Home</button>
       </div>
-    </div>
-  )
+    )
+  }
+  
   return <LandingPage onExploreClick={handleExploreClick} />
 }
 

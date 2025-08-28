@@ -43,6 +43,13 @@ export default {
           700: '#3b587d',
           800: '#2c425e',
           900: '#1e2d40',
+        },
+        sg: {
+          red: '#E9041E',
+          'red-dark': '#C00418',
+          black: '#1b1918',
+          white: '#ffffff',
+          gray: '#f8f9fa'
         }
       },
       animation: {

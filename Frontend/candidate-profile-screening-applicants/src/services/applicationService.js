@@ -4,8 +4,15 @@ export const applicationService = {
   async submitApplication(applicationData) {
     try {
       const formData = new FormData();
+      
+      // Add all form fields to FormData
+      formData.append('name', applicationData.name);
+      formData.append('email', applicationData.email);
+      formData.append('dob', applicationData.dateOfBirth);
+      formData.append('phoneNumber', applicationData.phone);
       formData.append('resumePdf', applicationData.resume);
       formData.append('jobId', applicationData.jobId);
+      formData.append('appliedDate', applicationData.appliedDate);
 
       const response = await fetch(`${API_BASE_URL}/apply-job`, {
         method: 'POST',
