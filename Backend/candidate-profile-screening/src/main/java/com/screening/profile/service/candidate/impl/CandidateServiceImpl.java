@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -91,6 +92,23 @@ public class CandidateServiceImpl implements CandidateService {
     public boolean saveCandidate(Candidate candidate){
         Candidate savedCandidate = candidateRepository.save(candidate);
         return true;
+    }
+
+    @Override
+    public List<Candidate> getAllCandidatesByJobId(Long id) {
+        return jobApplicationRepository.findCandidatesByJobId(id);
+    }
+
+    @Override
+    public boolean updateCandidateStatus(Long id, Status status) {
+        Optional<Candidate> savedCandidate = candidateRepository.findById(id);
+        if(savedCandidate.isPresent()){
+            Candidate newCandidate = savedCandidate.get();
+            newCandidate.setStatus(status);
+            candidateRepository.save(newCandidate);
+            return true;
+        }
+        return false;
     }
 
     public Candidate getCandidateById(Long id) {

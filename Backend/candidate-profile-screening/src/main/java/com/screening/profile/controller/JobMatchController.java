@@ -3,12 +3,15 @@ package com.screening.profile.controller;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.service.PerplexityService;
 import com.screening.profile.service.candidate.CandidateService;
+import com.screening.profile.util.enums.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin("*")
@@ -54,4 +57,28 @@ public class JobMatchController {
         return ResponseEntity.status(HttpStatus.OK).body(candidate);
     }
 
+
+    @PutMapping("/update-status")
+    public ResponseEntity<?> getAllCandidatesByJobId(@RequestParam("id") Long id, @RequestParam("status") Status status){
+        boolean updateStatus = this.candidateService.updateCandidateStatus(id, status);
+        if(!updateStatus)
+        {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Status update failed");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body("Status updated successfully");
+    }
+
+    @GetMapping("/all-candidates")
+    public ResponseEntity<?> getAllCandidatesByJobId(@PathVariable("id") Long id){
+        List<Candidate> candidate = this.candidateService.getAllCandidatesByJobId(id);
+        if(candidate == null || candidate.isEmpty())
+        {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("No candidate found");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(candidate);
+    }
 }
