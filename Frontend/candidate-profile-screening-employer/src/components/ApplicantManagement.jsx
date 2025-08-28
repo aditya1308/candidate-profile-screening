@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Check, X, Eye, Download, Phone, Mail, Calendar, Star, User, FileText, Tag, ChevronDown, ChevronUp, Copy, CheckCircle } from 'lucide-react';
 import { candidateService } from '../services/candidateService';
 import Button3D from './Button3D';
@@ -16,18 +16,7 @@ const ApplicantManagement = ({ jobId }) => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
 
-  useEffect(() => {
-    fetchCandidates();
-  }, [jobId]);
-
-  useEffect(() => {
-    if (allCandidates.length > 0) {
-      const filteredCandidates = filterCandidatesByTab(allCandidates, activeTab);
-      setCandidates(filteredCandidates);
-    }
-  }, [activeTab, allCandidates]);
-
-  const fetchCandidates = async () => {
+  const fetchCandidates = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -47,7 +36,18 @@ const ApplicantManagement = ({ jobId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId, activeTab]);
+
+  useEffect(() => {
+    fetchCandidates();
+  }, [fetchCandidates]);
+
+  useEffect(() => {
+    if (allCandidates.length > 0) {
+      const filteredCandidates = filterCandidatesByTab(allCandidates, activeTab);
+      setCandidates(filteredCandidates);
+    }
+  }, [activeTab, allCandidates]);
 
   const filterCandidatesByTab = (candidates, tabId) => {
     switch (tabId) {
@@ -166,6 +166,7 @@ const ApplicantManagement = ({ jobId }) => {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
+      console.log(err);
       setToastMessage('Failed to copy phone number');
       setToastType('error');
       setShowToast(true);
@@ -186,6 +187,7 @@ const ApplicantManagement = ({ jobId }) => {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
+      console.log(err);
       setToastMessage('Failed to open email client');
       setToastType('error');
       setShowToast(true);
@@ -218,7 +220,7 @@ const ApplicantManagement = ({ jobId }) => {
         <div className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center flex-1 space-x-3">
-                             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-sg-red to-red-600 hover:scale-110 transition-transform duration-300 ease-out shadow-lg">
+                             <div className="flex items-center justify-center w-10 h-10 transition-transform duration-300 ease-out rounded-full shadow-lg bg-gradient-to-br from-sg-red to-red-600 hover:scale-110">
                  <User className="w-5 h-5 text-white hover:animate-float" />
                </div>
               <div className="flex-1 min-w-0">
@@ -228,11 +230,11 @@ const ApplicantManagement = ({ jobId }) => {
                      <Mail className="w-4 h-4 mr-1 hover:animate-float" />
                      <button
                        onClick={() => openEmailClient(candidate.email, candidate.name)}
-                       className="flex items-center hover:text-blue-600 transition-colors duration-200 group"
+                       className="flex items-center transition-colors duration-200 hover:text-blue-600 group"
                        title="Click to send email"
                      >
                        <span className="truncate">{candidate.email}</span>
-                       <svg className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <svg className="w-3 h-3 ml-1 transition-opacity duration-200 opacity-0 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                        </svg>
                      </button>
@@ -241,11 +243,11 @@ const ApplicantManagement = ({ jobId }) => {
                      <Phone className="w-4 h-4 mr-1 hover:animate-float" />
                      <button
                        onClick={() => copyToClipboard(candidate.phoneNumber)}
-                       className="flex items-center hover:text-blue-600 transition-colors duration-200 group"
+                       className="flex items-center transition-colors duration-200 hover:text-blue-600 group"
                        title="Click to copy phone number"
                      >
                        <span className="truncate">{candidate.phoneNumber}</span>
-                       <Copy className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                       <Copy className="w-3 h-3 ml-1 transition-opacity duration-200 opacity-0 group-hover:opacity-100" />
                      </button>
                    </div>
                    <div className="flex items-center">
@@ -303,7 +305,7 @@ const ApplicantManagement = ({ jobId }) => {
                    <FileText className="w-5 h-5 mr-2 hover:animate-float" />
                    Summary
                  </h4>
-                                 <p className="p-4 text-sm leading-relaxed font-bold text-gray-800 bg-white border rounded shadow-sm hover:shadow-md transition-shadow duration-300 animate-fadeIn">
+                                 <p className="p-4 text-sm font-bold leading-relaxed text-gray-800 transition-shadow duration-300 bg-white border rounded shadow-sm hover:shadow-md animate-fadeIn">
                    {candidate.summary || 'No summary available'}
                  </p>
               </div>
@@ -548,7 +550,7 @@ const ApplicantManagement = ({ jobId }) => {
       <div className="space-y-6">
              {/* Enhanced Navigation Tabs with 7 tabs */}
        <div className="w-full animate-fadeIn">
-         <div className="relative p-1 overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+         <div className="relative p-1 overflow-hidden transition-shadow duration-300 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md">
           {/* Animated Background Slider */}
           <div 
             className="absolute transition-all duration-500 ease-out rounded-md top-1 bottom-1 bg-sg-red"
@@ -602,7 +604,7 @@ const ApplicantManagement = ({ jobId }) => {
 
              {/* Toast Notification */}
        {showToast && (
-         <div className="fixed top-4 right-4 z-50 animate-fadeIn">
+         <div className="fixed z-50 top-4 right-4 animate-fadeIn">
            <div className={`flex items-center px-4 py-3 rounded-lg shadow-lg border-l-4 ${
              toastType === 'success' 
                ? 'bg-green-50 border-green-400 text-green-800' 
