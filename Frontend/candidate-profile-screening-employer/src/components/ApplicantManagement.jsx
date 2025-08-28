@@ -98,7 +98,7 @@ const ApplicantManagement = ({ jobId }) => {
       case "onhold":
         return candidates.filter((c) => c.status === "ON_HOLD");
       case "hired":
-        return candidates.filter((c) => c.status === "SELECTED");
+        return candidates.filter((c) => c.status === "HIRED");
       case "rejected":
         return candidates.filter((c) => c.status === "REJECTED");
       default:
@@ -272,8 +272,8 @@ const ApplicantManagement = ({ jobId }) => {
     {
       id: "hired",
       label: "Hired",
-      status: "SELECTED",
-      count: allCandidates.filter((c) => c.status === "SELECTED").length,
+      status: "HIRED",
+      count: allCandidates.filter((c) => c.status === "HIRED").length,
     },
     {
       id: "rejected",
