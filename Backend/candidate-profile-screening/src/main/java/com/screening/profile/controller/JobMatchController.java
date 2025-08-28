@@ -77,7 +77,7 @@ public class JobMatchController {
         return ResponseEntity.status(HttpStatus.OK).body("Status updated successfully");
     }
 
-    @GetMapping("/all-candidates")
+    @GetMapping("/all-candidates/{id}")
     public ResponseEntity<?> getAllCandidatesByJobId(@PathVariable("id") Long id){
         List<Candidate> candidate = this.candidateService.getAllCandidatesByJobId(id);
         if(candidate == null || candidate.isEmpty())

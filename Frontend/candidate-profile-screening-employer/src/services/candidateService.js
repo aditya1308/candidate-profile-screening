@@ -1,38 +1,55 @@
 import { API_CONFIG, apiRequest, handleApiError } from './apiConfig.js';
 
 export const candidateService = {
-  async getCandidatesByJob() {
+  /**
+   * Get all candidates for a specific job by jobId
+   * Uses the new backend API: GET /api/v1/all-candidates/{id}
+   */
+  async getCandidatesByJobId(jobId) {
     try {
-      // Use the existing /candidates endpoint to get all candidates
-      const response = await apiRequest(`${API_CONFIG.BASE_URL}/candidates`);
-      const allCandidates = await response.json();
-      
-      // Filter candidates with status "IN_PROCESS" (Applied candidates)
-      const appliedCandidates = allCandidates.filter(candidate => 
-        candidate.status === "IN_PROCESS"
-      );
+      const response = await apiRequest(`${API_CONFIG.BASE_URL}/all-candidates/${jobId}`);
+      const candidates = await response.json();
       
       // Transform the data to include resumeUrl and appliedDate
-      return appliedCandidates.map(candidate => ({
+      return candidates.map(candidate => ({
         ...candidate,
         resumeUrl: `${API_CONFIG.BASE_URL}/candidate/${candidate.id}/resume`, // Resume download URL
         appliedDate: candidate.applicationDate || new Date().toISOString()
       }));
     } catch (error) {
-      throw handleApiError(error, 'fetching candidates by job');
+      throw handleApiError(error, 'fetching candidates by job ID');
     }
   },
 
+  /**
+   * Update candidate status
+   * Uses the backend API: PUT /api/v1/update-status
+   */
   async updateCandidateStatus(candidateId, newStatus) {
     try {
-      // TODO: Implement actual backend endpoint for status updates
-      // For now, throw an error since the endpoint is not implemented
-      throw new Error('Status update endpoint not implemented yet');
+      const params = new URLSearchParams({
+        id: candidateId,
+        status: newStatus
+      });
+      
+      const response = await apiRequest(`${API_CONFIG.BASE_URL}/update-status?${params}`, {
+        method: 'PUT'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update candidate status');
+      }
+      
+      return await response.json();
     } catch (error) {
       throw handleApiError(error, 'updating candidate status');
     }
   },
 
+  /**
+   * Get candidate by ID
+   * Uses the backend API: GET /api/v1/candidate/{id}
+   */
   async getCandidateById(candidateId) {
     try {
       const response = await apiRequest(`${API_CONFIG.BASE_URL}/candidate/${candidateId}`);
@@ -42,6 +59,10 @@ export const candidateService = {
     }
   },
 
+  /**
+   * Get all candidates (deprecated - use getCandidatesByJobId instead)
+   * Uses the backend API: GET /api/v1/candidates
+   */
   async getAllCandidates() {
     try {
       const response = await apiRequest(`${API_CONFIG.BASE_URL}/candidates`);

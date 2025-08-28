@@ -1,5 +1,4 @@
 const JobDescription = ({ job }) => {
-  console.log(job);
   return (
     <div className="space-y-6">
       <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
@@ -36,17 +35,6 @@ const JobDescription = ({ job }) => {
             </div>
           </div>
         )}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <span>Posted on {job.postedDate ? new Date(job.postedDate).toLocaleDateString() : 'Recently'}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Applications:</span>
-            <span className="px-3 py-1 text-sm font-bold text-white rounded-full bg-sg-red">
-              {job.applications || 0}
-            </span>
-          </div>
-        </div>
       </div>
 
       <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">

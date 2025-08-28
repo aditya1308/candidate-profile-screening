@@ -62,7 +62,6 @@ export const jobService = {
       // Since we don't have a backend endpoint for single job, 
       // we'll fetch all jobs and find the one we need
       const allJobs = await this.getAllJobs();
-      console.log("Niiii",allJobs);
       const job = allJobs.find(job => job.id === jobId);
       
       if (!job) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, FileText, Users } from 'lucide-react';
 import JobDescription from '../components/JobDescription';
@@ -13,11 +13,7 @@ const HRJobDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchJob();
-  }, [id]);
-
-  const fetchJob = async () => {
+  const fetchJob = useCallback(async () => {
     try {
       setLoading(true);
       const jobData = await jobService.getJobById(parseInt(id));
@@ -27,7 +23,11 @@ const HRJobDetailsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchJob();
+  }, [fetchJob]);
 
   if (loading) {
     return (
