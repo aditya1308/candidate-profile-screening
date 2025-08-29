@@ -12,7 +12,7 @@ import './App.css';
 
 const RoleBasedJobDetails = () => {
   const { user } = useAuth();
-  return user?.role === 'HR' ? <HRJobDetailsPage /> : <InterviewerJobDetailsPage />;
+  return user?.role === 'INTERVIEWER' ? <InterviewerJobDetailsPage /> : <HRJobDetailsPage />;
 };
 
 const RoleBasedDashboard = () => {
