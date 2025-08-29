@@ -60,7 +60,7 @@ const JobAnalytics = ({ jobId }) => {
     { label: 'Round 1', value: stats.inProcessRound1, percentage: stats.total > 0 ? (stats.inProcessRound1 / stats.total * 100).toFixed(1) : 0, color: 'bg-purple-500', bgColor: 'bg-purple-50', textColor: 'text-purple-700' },
     { label: 'Round 2', value: stats.inProcessRound2, percentage: stats.total > 0 ? (stats.inProcessRound2 / stats.total * 100).toFixed(1) : 0, color: 'bg-orange-500', bgColor: 'bg-orange-50', textColor: 'text-orange-700' },
     { label: 'Round 3', value: stats.inProcessRound3, percentage: stats.total > 0 ? (stats.inProcessRound3 / stats.total * 100).toFixed(1) : 0, color: 'bg-indigo-500', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
-    { label: 'On Hold', value: stats.onHold, percentage: stats.total > 0 ? (stats.onHold / stats.total * 100).toFixed(1) : 0, color: 'bg-yellow-500', bgColor: 'bg-yellow-50', textColor: 'text-yellow-700' },
+    { label: 'Shortlisted', value: stats.onHold, percentage: stats.total > 0 ? (stats.onHold / stats.total * 100).toFixed(1) : 0, color: 'bg-yellow-500', bgColor: 'bg-yellow-50', textColor: 'text-yellow-700' },
     { label: 'Selected', value: stats.selected, percentage: stats.total > 0 ? (stats.selected / stats.total * 100).toFixed(1) : 0, color: 'bg-emerald-500', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700' },
     { label: 'Rejected', value: stats.rejected, percentage: stats.total > 0 ? (stats.rejected / stats.total * 100).toFixed(1) : 0, color: 'bg-red-500', bgColor: 'bg-red-50', textColor: 'text-red-700' }
   ];
