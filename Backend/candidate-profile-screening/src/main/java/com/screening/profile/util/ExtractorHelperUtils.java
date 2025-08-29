@@ -3,11 +3,23 @@ package com.screening.profile.util;
 import com.screening.profile.model.Candidate;
 import lombok.experimental.UtilityClass;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @UtilityClass
 public class ExtractorHelperUtils {
+
+    private static final Set<String> SECTION_HEADERS = new HashSet<>(Arrays.asList(
+            "PROFESSIONAL SUMMARY", "TECHNICAL SKILLS", "EDUCATION", "PROJECTS",
+            "EXPERIENCE", "WORK EXPERIENCE", "SUMMARY", "OBJECTIVE", "SKILLS"
+    ));
+
+    private static final Set<String> INSTITUTE_KEYWORDS = new HashSet<>(Arrays.asList(
+            "COLLEGE", "UNIVERSITY", "INSTITUTE", "TECHNOLOGY", "ENGINEERING", "SCHOOL", "ACADEMY"
+    ));
 
     public static  String extractEmail(String text) {
         Matcher matcher = Pattern.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
@@ -43,17 +55,30 @@ public class ExtractorHelperUtils {
     }
 
     public static String extractName(String text, Candidate candidate) {
-        // Heuristic: The first non-empty line not containing email/phone/date is likely name
         String[] lines = text.split("\\r?\\n");
         for (String line : lines) {
             line = line.trim();
+            if (SECTION_HEADERS.contains(line.toUpperCase())) continue;
             if (!line.isEmpty() &&
                     (candidate.getEmail() == null || !line.contains(candidate.getEmail())) &&
                     (candidate.getPhoneNumber() == null || !line.contains(candidate.getPhoneNumber())) &&
                     !line.toLowerCase().contains("curriculum") &&
-                    !line.toLowerCase().contains("resume")) {
-                if (line.matches("^[A-Za-z ,.'-]{3,}$") && line.split("\\s+").length <= 4)
+                    !line.toLowerCase().contains("resume"))
+            {
+
+                String upper = line.toUpperCase();
+                boolean containsInstituteKeyword = INSTITUTE_KEYWORDS.stream().anyMatch(upper::contains);
+                if (containsInstituteKeyword) continue;
+
+                if (line.equals(line.toUpperCase())
+                        && line.matches("^[A-Z ,.'-]+$")
+                        && !line.toLowerCase().contains("engineer")) {
                     return line;
+                }
+
+                if (line.matches("^[A-Z][a-zA-Z ]+$") && line.split("\\s+").length <= 4) {
+                    return line;
+                }
             }
         }
         return null;
