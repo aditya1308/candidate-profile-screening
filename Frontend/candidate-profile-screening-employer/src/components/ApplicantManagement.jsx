@@ -265,7 +265,7 @@ const ApplicantManagement = ({ jobId }) => {
     },
     {
       id: "onhold",
-      label: "On Hold",
+      label: "Shortlisted",
       status: "ON_HOLD",
       count: allCandidates.filter((c) => c.status === "ON_HOLD").length,
     },

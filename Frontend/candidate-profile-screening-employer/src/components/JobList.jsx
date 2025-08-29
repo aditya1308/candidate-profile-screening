@@ -69,7 +69,7 @@ const JobList = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="mb-2 text-3xl font-bold text-gray-900">
-              Job Openings Dashboard
+              Job Openings 
             </h1>
             <p className="text-gray-600">
               Manage and monitor all active job postings
