@@ -31,20 +31,21 @@ public class InterviewServiceImpl implements InterviewService {
     }
 
     @Override
-    public Interview createInterview(Interview interviewDetails, Long interviewId) throws IOException, InterruptedException {
-        Optional<Interview> savedInterview = interviewRepository.findById(Math.toIntExact(interviewId));
+    public Interview createInterview(Interview interviewDetails, Long jobAppId) throws IOException, InterruptedException {
+
+        Optional<Interview> savedInterview = interviewRepository.findByJobApplicationId(jobAppId);
         if(savedInterview.isPresent()) {
             Interview interview = savedInterview.get();
+            interview.setId(savedInterview.get().getId());
             interview.setRound1Details(interviewDetails.getRound1Details());
             interview.setRound2Details(interviewDetails.getRound2Details());
             interview.setRound3Details(interviewDetails.getRound3Details());
             interview.setJobApplication(interviewDetails.getJobApplication());
             String feedback = getSummarizedFeedback(interviewDetails);
             interview.setFeedback(feedback);
-            interviewRepository.save(interview);
-            return interview;
+            return interviewRepository.save(interview);
         }
-        return null;
+        return interviewRepository.save(interviewDetails);
     }
 
     @Override
@@ -75,18 +76,14 @@ public class InterviewServiceImpl implements InterviewService {
         String feedback2 = "";
         String feedback3 = "";
 
-        Feedback feedbackRound3 = interviewDetails.getRound3Details();
-        Feedback feedbackRound2 = interviewDetails.getRound2Details();
-        Feedback feedbackRound1 = interviewDetails.getRound1Details();
-
-        if(Optional.ofNullable(feedbackRound3.getStatus()).isPresent()) {
-            feedback3 = feedback3 + feedbackRound3.getFeedback();
+        if(Optional.ofNullable(interviewDetails.getRound3Details()).isPresent()) {
+            feedback3 = feedback3 + interviewDetails.getRound3Details().getFeedback();
         }
-        if(Optional.ofNullable(feedbackRound2.getStatus()).isPresent()){
-            feedback2 = feedback2 + feedbackRound2.getFeedback();
+        if(Optional.ofNullable(interviewDetails.getRound2Details()).isPresent()){
+            feedback2 = feedback2 + interviewDetails.getRound2Details().getFeedback();
         }
-        if(Optional.ofNullable(feedbackRound1.getStatus()).isPresent()){
-            feedback1 = feedback1 + feedbackRound1.getFeedback();
+        if(Optional.ofNullable(interviewDetails.getRound1Details()).isPresent()){
+            feedback1 = feedback1 + interviewDetails.getRound1Details().getFeedback();
         }
         String finalFeedback = feedback1 + System.lineSeparator() + feedback2 + System.lineSeparator() + feedback3;
 

@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 public interface InterviewService {
-    Interview createInterview(Interview interviewDetails, Long candidateId) throws IOException, InterruptedException;
+    Interview createInterview(Interview interviewDetails, Long jobAppId) throws IOException, InterruptedException;
     List<InterviewDTO> getAllInterviews();
 
 }
