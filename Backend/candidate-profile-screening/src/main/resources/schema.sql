@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS authorizedaccess (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    role VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE admin (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255),
+    phone_number VARCHAR(20),
+    role VARCHAR(50) NOT NULL
+);
