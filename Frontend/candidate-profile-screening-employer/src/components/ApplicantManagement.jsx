@@ -431,7 +431,20 @@ const ApplicantManagement = ({ jobId }) => {
                      Comments
                    </h4>
                    <div className="p-4 text-sm leading-relaxed text-gray-800 transition-shadow duration-300 bg-white border rounded shadow-sm hover:shadow-md">
-                     {candidate.interviewComment || "No comments available yet. Comments will appear here once the interview is completed."}
+                     {(() => {
+                       switch (activeTab) {
+                         case "onhold":
+                           return candidate.feedbackSummary || "No feedback summary available yet.";
+                         case "round1":
+                           return candidate.round1Feedback || "No Round 1 feedback available yet.";
+                         case "round2":
+                           return candidate.round2Feedback || "No Round 2 feedback available yet.";
+                         case "round3":
+                           return candidate.round3Feedback || "No Round 3 feedback available yet.";
+                         default:
+                           return "No comments available yet. Comments will appear here once the interview is completed.";
+                       }
+                     })()}
                    </div>
                  </div>
                )}
