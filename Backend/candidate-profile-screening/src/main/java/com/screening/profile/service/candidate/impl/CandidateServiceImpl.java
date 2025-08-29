@@ -1,7 +1,10 @@
 package com.screening.profile.service.candidate.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.screening.profile.dto.CandidateInterviewDTO;
 import com.screening.profile.dto.CandidateReqDTO;
+import com.screening.profile.exception.ServiceException;
 import com.screening.profile.exception.DuplicateCandidateException;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.model.JobApplication;
@@ -15,11 +18,14 @@ import me.xdrop.fuzzywuzzy.FuzzySearch;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -95,7 +101,6 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setUniqueId(uniqueId);
         candidate.setMatchedSkills(matchedSkills);
         candidate.setStatus(Status.IN_PROCESS);
-        candidate.setResumeText(candidateReqDTO.getResumeText());
         log.info(candidate.toString());
         candidateRepository.save(candidate);
         JobApplication newJobApplication = new JobApplication();
@@ -130,6 +135,48 @@ public class CandidateServiceImpl implements CandidateService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<CandidateInterviewDTO> getCandidatesWithInterviewFeedbackByJobId(Long joId) throws JsonProcessingException {
+        List<Object[]> results = candidateRepository.findCandidatesWithInterviewFeedbackByJobId(Math.toIntExact(joId));
+        List<CandidateInterviewDTO> dtoList = new ArrayList<>();
+
+        for (Object[] row : results) {
+
+            List<String> matchedSkills = null;
+            if (row[4] != null) {
+                try (ByteArrayInputStream bais = new ByteArrayInputStream((byte[])row[4]);
+                     ObjectInputStream ois = new ObjectInputStream(bais)) {
+
+                    @SuppressWarnings("unchecked")
+                    List<String> skills = (List<String>) ois.readObject();
+                    matchedSkills = skills;
+                } catch (IOException | ClassNotFoundException e) {
+                    throw new ServiceException(e.getMessage(),e.getLocalizedMessage());
+                }
+            }
+
+            CandidateInterviewDTO dto = new CandidateInterviewDTO(
+                    ((Number) row[0]).longValue(),   // id
+                    (String) row[1],                 // date_of_birth
+                    (String) row[2],                 // email
+                    (byte[]) row[3],                 // file_data (keep as bytes or convert as needed)
+                    matchedSkills,                   // parsed List<String>
+                    (String) row[5],                 // name
+                    (String) row[6],                 // phone_number
+                    row[7] != null ? ((Number)row[7]).intValue() : null,  // score
+                    (String) row[8],                 // status
+                    (String) row[9],                 // summary
+                    (String) row[10],                // unique_id
+                    (String) row[11],                // feedback_summary
+                    (String) row[12],                // round1Feedback
+                    (String) row[13],                // round2Feedback
+                    (String) row[14]                 // round3Feedback
+            );
+            dtoList.add(dto);
+        }
+        return dtoList;
     }
 
     public Candidate getCandidateById(Long id) {
