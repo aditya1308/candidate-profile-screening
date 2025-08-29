@@ -6,10 +6,9 @@ import Button3D from '../components/Button3D';
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ 
     name: '', 
-    username: '', 
     email: '',
     password: '', 
     role: ''
@@ -26,12 +25,12 @@ const LoginPage = () => {
     setLoading(true);
     
     try {
-      const success = await login(credentials.username, credentials.password);
+      const success = await login(credentials.email, credentials.password);
       if (success) {
         const from = location.state?.from?.pathname || '/dashboard';
         navigate(from, { replace: true });
       } else {
-        setError('Invalid username or password');
+        setError('Invalid email or password');
       }
     } catch (error) {
       setError(error.message || 'Login failed. Please try again.');
@@ -53,17 +52,16 @@ const LoginPage = () => {
     
     try {
       const adminData = {
-        username: registerData.username,
         email: registerData.email,
         password: registerData.password,
         fullName: registerData.name,
-        role: registerData.role
+        role: registerData.role.toUpperCase()
       };
       
       await register(adminData);
       setError('Registration successful! Please login with your credentials.');
       setIsLogin(true);
-      setRegisterData({ name: '', username: '', email: '', password: '', role: '' });
+      setRegisterData({ name: '', email: '', password: '', role: '' });
     } catch (error) {
       setError(error.message || 'Registration failed. Please try again.');
     } finally {
@@ -313,19 +311,19 @@ const LoginPage = () => {
               <div className={`transition-all duration-500 ease-in-out ${isLogin ? 'block' : 'hidden'}`}>
                 <form onSubmit={handleLoginSubmit} className="space-y-4 sm:space-y-5 lg:space-y-6">
                   <div>
-                    <label htmlFor="username" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                      Username
+                    <label htmlFor="email" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                      Email Address
                     </label>
                     <input
-                      id="username"
-                      name="username"
-                      type="text"
+                      id="email"
+                      name="email"
+                      type="email"
                       required
                       disabled={loading}
                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3 lg:py-3.5 bg-gray-50 border border-gray-200 rounded-md sm:rounded-lg focus:ring-2 focus:ring-sg-red/50 focus:border-sg-red/50 transition-all duration-300 text-gray-800 placeholder-gray-500 focus:bg-white text-sm sm:text-base disabled:opacity-50"
-                      placeholder="Enter your username"
-                      value={credentials.username}
-                      onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                      placeholder="Enter your email address"
+                      value={credentials.email}
+                      onChange={(e) => setCredentials(prev => ({ ...prev, email: e.target.value }))}
                     />
                   </div>
                   <div>
@@ -393,26 +391,11 @@ const LoginPage = () => {
                       >
                         <option value="">Select role</option>
                         <option value="HR">HR Manager</option>
-                        <option value="Interviewer">Interviewer</option>
+                        <option value="INTERVIEWER">Interviewer</option>
                       </select>
                     </div>
                   </div>
-                  <div>
-                    <label htmlFor="regUsername" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                      Username
-                    </label>
-                    <input
-                      id="regUsername"
-                      name="username"
-                      type="text"
-                      required
-                      disabled={loading}
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 lg:py-3.5 bg-gray-50 border border-gray-200 rounded-md sm:rounded-lg focus:ring-2 focus:ring-sg-red/50 focus:border-sg-red/50 transition-all duration-300 text-gray-800 placeholder-gray-500 focus:bg-white text-sm sm:text-base disabled:opacity-50"
-                      placeholder="Choose a username"
-                      value={registerData.username}
-                      onChange={(e) => setRegisterData(prev => ({ ...prev, username: e.target.value }))}
-                    />
-                  </div>
+
                   <div>
                     <label htmlFor="regEmail" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
                       Email Address
