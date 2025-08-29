@@ -3,9 +3,11 @@ package com.screening.profile.controller;
 import com.screening.profile.dto.InterviewDTO;
 import com.screening.profile.model.Interview;
 import com.screening.profile.service.interview.InterviewService;
+import com.screening.profile.util.SetInterviewerRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,5 +39,17 @@ public class InterviewController {
     @GetMapping
     public List<InterviewDTO> getAllInterviews(){
         return this.interviewService.getAllInterviews();
+    }
+
+    @GetMapping("/my-interviews")
+    public List<Interview> getMyInterviews() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return interviewService.getInterviewsForInterviewer(email);
+    }
+
+    @PutMapping("/{id}/set-interviewer")
+    public Interview setInterviewer(@PathVariable Integer id,
+                                    @RequestBody SetInterviewerRequest request) {
+        return interviewService.setInterviewer(id, request);
     }
 }

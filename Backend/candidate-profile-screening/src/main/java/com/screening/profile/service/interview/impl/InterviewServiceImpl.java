@@ -1,13 +1,17 @@
 package com.screening.profile.service.interview.impl;
 
 import com.screening.profile.dto.InterviewDTO;
+import com.screening.profile.model.Admin;
 import com.screening.profile.model.Feedback;
 import com.screening.profile.model.Interview;
 import com.screening.profile.model.JobApplication;
+import com.screening.profile.repository.AdminRepository;
 import com.screening.profile.repository.InterviewRepository;
 import com.screening.profile.service.PerplexityService;
 import com.screening.profile.service.candidate.CandidateService;
 import com.screening.profile.service.interview.InterviewService;
+import com.screening.profile.util.SetInterviewerRequest;
+import com.screening.profile.util.enums.Role;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +27,13 @@ public class InterviewServiceImpl implements InterviewService {
    private final InterviewRepository interviewRepository;
    private final CandidateService candidateService;
    private final PerplexityService perplexityService;
+   private AdminRepository adminRepository;
 
-    public InterviewServiceImpl(InterviewRepository interviewRepository, CandidateService candidateService, PerplexityService perplexityService) {
+    public InterviewServiceImpl(InterviewRepository interviewRepository, CandidateService candidateService, PerplexityService perplexityService, AdminRepository adminRepository) {
         this.interviewRepository = interviewRepository;
         this.candidateService = candidateService;
         this.perplexityService = perplexityService;
+        this.adminRepository = adminRepository;
     }
 
     @Override
@@ -68,6 +74,29 @@ public class InterviewServiceImpl implements InterviewService {
                 .toList();
         log.info("Number of Interviews : {}", interviewList.size());
         return interviewList;
+    }
+
+    @Override
+    public List<Interview> getInterviewsForInterviewer(String email) {
+        return interviewRepository.findByInterviewerEmail(email);
+    }
+
+    @Override
+    public Interview setInterviewer(Integer interviewId, SetInterviewerRequest request) {
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new RuntimeException("Interview not found"));
+
+        Admin interviewer = adminRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Interviewer not found"));
+
+        switch (request.getRound()) {
+            case 1 -> interview.setRound1Interviewer(interviewer);
+            case 2 -> interview.setRound2Interviewer(interviewer);
+            case 3 -> interview.setRound3Interviewer(interviewer);
+            default -> throw new IllegalArgumentException("Invalid round number: " + request.getRound());
+        }
+
+        return interviewRepository.save(interview);
     }
 
     private String getSummarizedFeedback(Interview interviewDetails) throws IOException, InterruptedException {
