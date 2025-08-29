@@ -43,6 +43,9 @@ public class Candidate {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Lob
+    private String resumeText;
+
     @Override
     public String toString() {
         return "Candidate{" +
@@ -55,6 +58,7 @@ public class Candidate {
                 ", summary='" + summary + '\'' +
                 ", uniqueId='" + uniqueId + '\'' +
                 ", matchedSkills=" + matchedSkills +
+                ", resumeText=" + resumeText +
                 '}';
     }
     // one to many mapping of candidate to job applicatipn
