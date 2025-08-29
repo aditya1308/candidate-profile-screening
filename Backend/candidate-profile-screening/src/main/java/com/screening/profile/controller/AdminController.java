@@ -80,11 +80,11 @@ public class AdminController {
         return ResponseEntity.ok(request.getRole() + " onboarded with email: " + request.getEmail());
     }
 
-    @GetMapping("/hrs")
+    @GetMapping("/interviewers")
     @PreAuthorize("hasAnyRole('SUPERADMIN','HR')")
-    public ResponseEntity<List<Admin>> getAllHRs() {
-        List<Admin> hrList = adminRepository.findByRole(Role.HR);
-        return ResponseEntity.ok(hrList);
+    public ResponseEntity<List<Admin>> getAllInterviewers() {
+        List<Admin> interviewerList = adminRepository.findByRole(Role.INTERVIEWER);
+        return ResponseEntity.ok(interviewerList);
     }
 
     @GetMapping("/home")
