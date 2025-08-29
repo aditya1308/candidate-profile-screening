@@ -1,6 +1,9 @@
 import React from 'react';
 
 const TabNavigation = ({ tabs, activeTab, onTabSwitch }) => {
+  const activeIndex = tabs.findIndex((tab) => tab.id === activeTab);
+  const tabWidth = 100 / tabs.length;
+
   return (
     <div className="w-full animate-fadeIn">
       <div className="relative p-1 overflow-hidden transition-shadow duration-300 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md">
@@ -8,10 +11,8 @@ const TabNavigation = ({ tabs, activeTab, onTabSwitch }) => {
         <div
           className="absolute transition-all duration-500 ease-out rounded-md top-1 bottom-1 bg-sg-red"
           style={{
-            width: "calc(14.285% - 0.125rem)",
-            left: `calc(${
-              tabs.findIndex((tab) => tab.id === activeTab) * 14.285
-            }% + 0.125rem)`,
+            width: `calc(${tabWidth}% - 0.125rem)`,
+            left: `calc(${activeIndex * tabWidth}% + 0.125rem)`,
           }}
         />
 
