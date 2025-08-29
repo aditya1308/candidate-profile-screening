@@ -10,4 +10,6 @@ public interface JobService {
     Job saveJob(Job job);
     Optional<Job> getJob(Integer id);
     String getJobDescription(Long id);
+    Job updateJob(Integer id, Job job);
+    void deleteJob(Integer id);
 }
