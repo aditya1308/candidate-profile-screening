@@ -43,7 +43,12 @@ public class AdminController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(admin.getUsername(), admin.getPassword())
             );
-            String token = jwtService.generateToken(authentication.getName());
+            
+            // Get the admin details to extract role
+            Admin adminDetails = adminRepository.findByUsername(admin.getUsername())
+                    .orElseThrow(() -> new BadCredentialsException("User not found"));
+            
+            String token = jwtService.generateToken(authentication.getName(), adminDetails.getRole());
             return ResponseEntity.ok(token);
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
