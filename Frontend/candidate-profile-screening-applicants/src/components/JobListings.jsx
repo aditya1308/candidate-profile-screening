@@ -72,7 +72,7 @@ const JobListings = ({ jobs, onJobClick, userType = 'applicant' }) => {
                       
                       {/* Button layer */}
                       <button 
-                        className="relative w-full py-4 px-6 text-white font-semibold bg-sg-red hover:bg-sg-red/90 transition-all duration-200 transform group-hover:translate-x-1 group-hover:translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sg-red rounded-lg"
+                        className="relative w-full py-4 px-6 text-white font-semibold bg-sg-red hover:bg-sg-red/90 transition-all duration-200 transform group-hover:translate-x-1 group-hover:translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sg-red"
                       >
                         Apply Now
                       </button>

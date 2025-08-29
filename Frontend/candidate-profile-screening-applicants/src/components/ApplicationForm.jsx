@@ -143,7 +143,7 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
 
   return (
     <div className="min-h-screen bg-sg-gray pb-16">
-      <Header showBackButton={true} backButtonText="← Back to Home" onBackClick={onBack} />
+      <Header showBackButton={true} backButtonText="Back to Home" onBackClick={onBack} />
       
       <main className="pt-16">
         <div className="px-6 mx-auto max-w-7xl py-6">
@@ -348,18 +348,18 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="relative w-full py-4 px-6 text-white font-semibold bg-sg-red hover:bg-sg-red/90 transition-all duration-200 transform group-hover:translate-x-1 group-hover:translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sg-red disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+                        className="relative w-full py-4 px-6 text-white font-semibold bg-sg-red hover:bg-sg-red/90 transition-all duration-200 transform group-hover:translate-x-1 group-hover:translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sg-red disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isSubmitting ? (
-                          <>
+                          <div className="flex items-center justify-center">
                             <div className="w-4 h-4 mr-2 border-b-2 border-white rounded-full animate-spin"></div>
                             Submitting...
-                          </>
+                          </div>
                         ) : (
-                          <>
+                          <div className="flex items-center justify-center">
                             <Send className="w-4 h-4 mr-2" />
                             Submit Application
-                          </>
+                          </div>
                         )}
                       </button>
                     </div>
