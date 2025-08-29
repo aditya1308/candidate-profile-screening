@@ -1,5 +1,6 @@
 package com.screening.profile.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.screening.profile.dto.CandidateReqDTO;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.*;
 import java.nio.charset.StandardCharsets;
@@ -64,7 +66,7 @@ public class PerplexityService {
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of(
                 "role", "system",
-                "content", "You are an AI job screening assistant. Compare the following resume and job description, and output a JSON with fields matchedSkills (list), missingSkills (list), score (int 0-10), and summary (one line)."
+                "content", "You are an AI job screening assistant. Compare the following resume and job description, and output a JSON with fields matchedSkills (list), missingSkills (list), score (int 0-10), and summary (one line). In the summary also include the years of work experience matching with the job description and the work experience mentioned in resume which will not be explicitly mentioned"
         ));
         messages.add(Map.of(
                 "role", "user",
@@ -113,6 +115,55 @@ public class PerplexityService {
             String fallback = makeFallbackJson(resume, jobDescriptionWithSkills);
             return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId, candidateReqDTO);
         }
+    }
+
+    public String askPerplexityForSummarizedFeedback(String feedback) throws IOException, InterruptedException {
+
+        String summaryFeedback = "";
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", "sonar-pro");
+        payload.put("max_tokens", 500);
+        payload.put("temperature", 0.7);
+
+        List<Map<String, String>> messages = new ArrayList<>();
+        messages.add(Map.of(
+                "role", "system",
+                "content", "Summarize the given paragraph in about 200 words if possible, it is a feedback for a candidate which has been interviewed, this summary will be read by the talent acquisition team. Return the response in a simple string format."
+        ));
+        messages.add(Map.of(
+                "role", "user",
+                "content", feedback
+        ));
+        payload.put("messages", messages);
+
+        String requestBody = objectMapper.writeValueAsString(payload);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(API_ENDPOINT))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+                .build();
+
+        try {
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
+            JsonNode rootNode = objectMapper.readTree(response.body());
+            JsonNode choices = rootNode.get("choices");
+            if (choices != null && choices.isArray() && !choices.isEmpty()) {
+                JsonNode firstChoice = choices.get(0);
+                JsonNode message = firstChoice.get("message");
+                if (message != null) {
+                    JsonNode contentNode = message.get("content");
+                    if (contentNode != null) {
+                        summaryFeedback = contentNode.asText();
+                    }
+                }
+            }
+        } catch (Exception e){
+            throw new ServiceException(e.getMessage(), e.getLocalizedMessage());
+        }
+        return summaryFeedback;
     }
 
     private String makeFallbackJson(String resume, String jobDescription) {
