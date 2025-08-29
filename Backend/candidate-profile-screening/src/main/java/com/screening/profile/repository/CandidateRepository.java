@@ -18,7 +18,7 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
             "i.round2_details->>'$.feedback' AS round2_feedback, " +
             "i.round3_details->>'$.feedback' AS round3_feedback " +
             "FROM candidate c " +
-            "LEFT JOIN job_application ja ON ja.candidate_id = c.id AND ja.job_id = :jobId " +
+            "INNER JOIN job_application ja ON ja.candidate_id = c.id AND ja.job_id = :jobId " +
             "LEFT JOIN interview i ON i.job_application_id = ja.id",
             nativeQuery = true)
     List<Object[]> findCandidatesWithInterviewFeedbackByJobId(@Param("jobId") Integer jobId);

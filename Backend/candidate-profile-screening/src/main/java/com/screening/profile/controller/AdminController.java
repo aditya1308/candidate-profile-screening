@@ -21,6 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/admins")
+@CrossOrigin("*")
 public class AdminController {
 
     private final AdminRepository adminRepository;
