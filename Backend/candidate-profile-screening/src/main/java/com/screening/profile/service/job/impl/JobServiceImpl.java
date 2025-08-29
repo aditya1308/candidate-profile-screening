@@ -52,4 +52,31 @@ public class JobServiceImpl implements JobService {
         return jobDescription;
     }
 
+    @Override
+    public Job updateJob(Integer id, Job jobDetails) {
+        Optional<Job> existingJob = jobRepository.findById(id);
+        if (existingJob.isPresent()) {
+            Job job = existingJob.get();
+            job.setTitle(jobDetails.getTitle());
+            job.setRequiredSkills(jobDetails.getRequiredSkills());
+            job.setDescription(jobDetails.getDescription());
+            job.setLocation(jobDetails.getLocation());
+            return jobRepository.save(job);
+        } else {
+            log.error("Job not found with id: {}", id);
+            throw new RuntimeException("Job not found with id: " + id);
+        }
+    }
+
+    @Override
+    public void deleteJob(Integer id) {
+        Optional<Job> existingJob = jobRepository.findById(id);
+        if (existingJob.isPresent()) {
+            jobRepository.deleteById(id);
+            log.info("Job deleted successfully with id: {}", id);
+        } else {
+            log.error("Job not found with id: {}", id);
+            throw new RuntimeException("Job not found with id: " + id);
+        }
+    }
 }
