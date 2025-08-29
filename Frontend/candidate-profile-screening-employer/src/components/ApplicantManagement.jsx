@@ -412,180 +412,184 @@ const ApplicantManagement = ({ jobId }) => {
         {isExpanded && (
           <div className="border-t border-gray-100 bg-gray-50 animate-slideDown">
             <div className="p-4 space-y-4">
-              {/* Summary */}
-              <div>
-                <h4 className="flex items-center mb-2 text-base font-bold text-gray-800">
-                  <FileText className="w-5 h-5 mr-2 hover:animate-float" />
-                  Summary
-                </h4>
-                <p className="p-4 text-sm font-bold leading-relaxed text-gray-800 transition-shadow duration-300 bg-white border rounded shadow-sm hover:shadow-md">
-                  {candidate.summary || "No summary available"}
-                </p>
-              </div>
+                             {/* Summary */}
+               <div>
+                 <h4 className="flex items-center mb-2 text-base font-bold text-gray-800">
+                   <FileText className="w-5 h-5 mr-2 hover:animate-float" />
+                   Summary
+                 </h4>
+                 <p className="p-4 text-sm font-bold leading-relaxed text-gray-800 transition-shadow duration-300 bg-white border rounded shadow-sm hover:shadow-md">
+                   {candidate.summary || "No summary available"}
+                 </p>
+               </div>
 
-              {/* Matched Skills */}
-              <div>
-                <h4 className="flex items-center mb-2 text-base font-bold text-gray-800">
-                  <Tag className="w-5 h-5 mr-2 hover:animate-float" />
-                  Matched Skills ({candidate.matchedSkills?.length || 0})
-                </h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {candidate.matchedSkills?.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 hover:scale-110 hover:bg-green-200 transition-all duration-300 transform-gpu"
-                    >
-                      {skill}
-                    </span>
-                  )) || (
-                    <span className="text-sm text-gray-500">
-                      No skills data available
-                    </span>
-                  )}
-                </div>
-              </div>
+               {/* Interview Comments - Only show for Round1, Round2, Round3, and On-Hold tabs */}
+               {(activeTab === "round1" || activeTab === "round2" || activeTab === "round3" || activeTab === "onhold") && (
+                 <div>
+                   <h4 className="flex items-center mb-2 text-base font-bold text-gray-800">
+                     <FileText className="w-5 h-5 mr-2 hover:animate-float" />
+                     Comments
+                   </h4>
+                   <div className="p-4 text-sm leading-relaxed text-gray-800 transition-shadow duration-300 bg-white border rounded shadow-sm hover:shadow-md">
+                     {candidate.interviewComment || "No comments available yet. Comments will appear here once the interview is completed."}
+                   </div>
+                 </div>
+               )}
 
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end pt-3 space-x-2 border-t border-gray-200">
-                {activeTab === "applied" && (
-                  <>
-                    <Button3D
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "IN_PROCESS_ROUND1")
-                      }
-                      buttonColor="bg-green-600"
-                      shadowColor="bg-green-800"
-                      className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
-                    >
-                      <Check className="w-3 h-3 mr-1" />
-                      Select for Round 1
-                    </Button3D>
-                    <Button3D
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "REJECTED")
-                      }
-                      buttonColor="bg-red-600"
-                      shadowColor="bg-red-800"
-                      className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
-                    >
-                      <X className="w-3 h-3 mr-1" />
-                      Reject
-                    </Button3D>
-                  </>
-                )}
-                {activeTab === "round1" && (
-                  <>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "IN_PROCESS_ROUND2")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded hover:bg-green-700"
-                    >
-                      <Check className="w-4 h-4 mr-1" />
-                      Select for Round 2
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "ON_HOLD")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-yellow-600 rounded hover:bg-yellow-700"
-                    >
-                      ⏸ Put on Hold
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "REJECTED")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-red-600 rounded hover:bg-red-700"
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Reject
-                    </button>
-                  </>
-                )}
-                {activeTab === "round2" && (
-                  <>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "IN_PROCESS_ROUND3")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded hover:bg-green-700"
-                    >
-                      <Check className="w-4 h-4 mr-1" />
-                      Select for Round 3
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "ON_HOLD")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-yellow-600 rounded hover:bg-yellow-700"
-                    >
-                      ⏸ Put on Hold
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "REJECTED")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-red-600 rounded hover:bg-red-700"
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Reject
-                    </button>
-                  </>
-                )}
-                {activeTab === "round3" && (
-                  <>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "SELECTED")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded hover:bg-green-700"
-                    >
-                      <Check className="w-4 h-4 mr-1" />
-                      Hire Candidate
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "ON_HOLD")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-yellow-600 rounded hover:bg-yellow-700"
-                    >
-                      ⏸ Put on Hold
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "REJECTED")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-red-600 rounded hover:bg-red-700"
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Reject
-                    </button>
-                  </>
-                )}
-                {activeTab === "onhold" && (
-                  <>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "IN_PROCESS_ROUND1")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded hover:bg-green-700"
-                    >
-                      <Check className="w-4 h-4 mr-1" />
-                      Move to Round 1
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleStatusUpdate(candidate.id, "REJECTED")
-                      }
-                      className="flex items-center px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 bg-red-600 rounded hover:bg-red-700"
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Reject
-                    </button>
-                  </>
-                )}
-              </div>
+               {/* Matched Skills */}
+               <div>
+                 <h4 className="flex items-center mb-2 text-base font-bold text-gray-800">
+                   <Tag className="w-5 h-5 mr-2 hover:animate-float" />
+                   Matched Skills ({candidate.matchedSkills?.length || 0})
+                 </h4>
+                 <div className="flex flex-wrap gap-1.5">
+                   {candidate.matchedSkills?.map((skill, index) => (
+                     <span
+                       key={index}
+                       className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 hover:scale-110 hover:bg-green-200 transition-all duration-300 transform-gpu"
+                     >
+                       {skill}
+                     </span>
+                   )) || (
+                     <span className="text-sm text-gray-500">
+                       No skills data available
+                     </span>
+                   )}
+                 </div>
+               </div>
+
+                                                                                                                       {/* Action Buttons */}
+                 <div className="flex items-center justify-end pt-3 space-x-2 border-t border-gray-200">
+                   {activeTab === "applied" && (
+                     <>
+                                               <Button3D
+                          onClick={() =>
+                            handleStatusUpdate(candidate.id, "IN_PROCESS_ROUND1")
+                          }
+                          buttonColor="bg-green-600"
+                          shadowColor="bg-green-800"
+                          className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                        >
+                          <Check className="w-3 h-3 mr-1" />
+                          Select for Interview
+                        </Button3D>
+                       <Button3D
+                         onClick={() =>
+                           handleStatusUpdate(candidate.id, "REJECTED")
+                         }
+                         buttonColor="bg-red-600"
+                         shadowColor="bg-red-800"
+                         className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                       >
+                         <X className="w-3 h-3 mr-1" />
+                         Reject
+                       </Button3D>
+                     </>
+                   )}
+                   {activeTab === "round1" && (
+                     <>
+                       <Button3D
+                         onClick={() =>
+                           handleStatusUpdate(candidate.id, "IN_PROCESS_ROUND2")
+                         }
+                         buttonColor="bg-green-600"
+                         shadowColor="bg-green-800"
+                         className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                       >
+                         <Check className="w-3 h-3 mr-1" />
+                         Move to Next Round
+                       </Button3D>
+                       <Button3D
+                         onClick={() =>
+                           handleStatusUpdate(candidate.id, "REJECTED")
+                         }
+                         buttonColor="bg-red-600"
+                         shadowColor="bg-red-800"
+                         className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                       >
+                         <X className="w-3 h-3 mr-1" />
+                         Reject
+                       </Button3D>
+                     </>
+                   )}
+                   {activeTab === "round2" && (
+                     <>
+                       <Button3D
+                         onClick={() =>
+                           handleStatusUpdate(candidate.id, "IN_PROCESS_ROUND3")
+                         }
+                         buttonColor="bg-green-600"
+                         shadowColor="bg-green-800"
+                         className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                       >
+                         <Check className="w-3 h-3 mr-1" />
+                         Move to Next Round
+                       </Button3D>
+                       <Button3D
+                         onClick={() =>
+                           handleStatusUpdate(candidate.id, "REJECTED")
+                         }
+                         buttonColor="bg-red-600"
+                         shadowColor="bg-red-800"
+                         className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                       >
+                         <X className="w-3 h-3 mr-1" />
+                         Reject
+                       </Button3D>
+                     </>
+                   )}
+                   {activeTab === "round3" && (
+                     <>
+                       <Button3D
+                         onClick={() =>
+                           handleStatusUpdate(candidate.id, "ON_HOLD")
+                         }
+                         buttonColor="bg-green-600"
+                         shadowColor="bg-green-800"
+                         className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                       >
+                         Consider for Hiring
+                       </Button3D>
+                       <Button3D
+                         onClick={() =>
+                           handleStatusUpdate(candidate.id, "REJECTED")
+                         }
+                         buttonColor="bg-red-600"
+                         shadowColor="bg-red-800"
+                         className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                       >
+                         <X className="w-3 h-3 mr-1" />
+                         Reject
+                       </Button3D>
+                     </>
+                   )}
+                   {activeTab === "onhold" && (
+                     <>
+                       <Button3D
+                         onClick={() =>
+                           handleStatusUpdate(candidate.id, "HIRED")
+                         }
+                         buttonColor="bg-green-600"
+                         shadowColor="bg-green-800"
+                         className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                       >
+                         <Check className="w-3 h-3 mr-1" />
+                         Hire
+                       </Button3D>
+                       <Button3D
+                         onClick={() =>
+                           handleStatusUpdate(candidate.id, "REJECTED")
+                         }
+                         buttonColor="bg-red-600"
+                         shadowColor="bg-red-800"
+                         className="flex items-center justify-center px-3 py-1.5 text-xs font-medium"
+                       >
+                         <X className="w-3 h-3 mr-1" />
+                         Reject
+                       </Button3D>
+                     </>
+                   )}
+                 </div>
             </div>
           </div>
         )}
