@@ -1,5 +1,7 @@
 package com.screening.profile.service.candidate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.screening.profile.dto.CandidateInterviewDTO;
 import com.screening.profile.dto.CandidateReqDTO;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.util.enums.Status;
@@ -15,4 +17,5 @@ public interface CandidateService {
     boolean saveCandidate(Candidate candidate);
     List<Candidate> getAllCandidatesByJobId(Long id);
     boolean updateCandidateStatus(Long id, Status status);
+    List<CandidateInterviewDTO> getCandidatesWithInterviewFeedbackByJobId(Long id) throws JsonProcessingException;
 }
