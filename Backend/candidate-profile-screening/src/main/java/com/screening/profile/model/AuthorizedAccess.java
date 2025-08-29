@@ -2,30 +2,25 @@ package com.screening.profile.model;
 
 import com.screening.profile.util.enums.Role;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Admin {
+public class AuthorizedAccess {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
-
-    @Column(nullable = false)
-    private String password;
-
-    private String fullName;
-
-    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     private Role role;
-
 }
