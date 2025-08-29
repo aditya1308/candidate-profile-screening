@@ -1,7 +1,6 @@
 package com.screening.profile.service.interview.impl;
 
 import com.screening.profile.dto.InterviewDTO;
-import com.screening.profile.model.Feedback;
 import com.screening.profile.model.Interview;
 import com.screening.profile.model.JobApplication;
 import com.screening.profile.repository.InterviewRepository;

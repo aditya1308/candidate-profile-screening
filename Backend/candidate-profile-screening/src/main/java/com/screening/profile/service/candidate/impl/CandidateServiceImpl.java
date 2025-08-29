@@ -165,14 +165,15 @@ public class CandidateServiceImpl implements CandidateService {
                     matchedSkills,                   // parsed List<String>
                     (String) row[5],                 // name
                     (String) row[6],                 // phone_number
-                    row[7] != null ? ((Number)row[7]).intValue() : null,  // score
-                    (String) row[8],                 // status
-                    (String) row[9],                 // summary
-                    (String) row[10],                // unique_id
-                    (String) row[11],                // feedback_summary
-                    (String) row[12],                // round1Feedback
-                    (String) row[13],                // round2Feedback
-                    (String) row[14]                 // round3Feedback
+                    null,
+                    row[8] != null ? ((Number)row[8]).intValue() : null,  // score
+                    (String) row[9],                 // status
+                    (String) row[10],                 // summary
+                    (String) row[11],                // unique_id
+                    (String) row[12],                // feedback_summary
+                    (String) row[13],                // round1Feedback
+                    (String) row[14],                // round2Feedback
+                    (String) row[15]                 // round3Feedback
             );
             dtoList.add(dto);
         }
