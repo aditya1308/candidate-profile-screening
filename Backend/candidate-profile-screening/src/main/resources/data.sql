@@ -53,3 +53,8 @@ INSERT IGNORE INTO authorizedaccess (email, role) VALUES
 ('sanjay.thakur@socgen.com', 'INTERVIEWER'),
 ('usha.iyer@socgen.com', 'INTERVIEWER'),
 ('dinesh.chauhan@socgen.com', 'INTERVIEWER');
+
+-- SuperADMIN
+INSERT IGNORE INTO admin (email, password, full_name, phone_number, role) VALUES
+('super.admin@socgen.com', '$2a$10$7dJwZsGpQ6uQh9nbJgTj7uJ1JXcGJ4y0N4XjKk3rQXjU6QwF8q5gq', 'Super Admin', '9123456789', 'SUPERADMIN');
+
