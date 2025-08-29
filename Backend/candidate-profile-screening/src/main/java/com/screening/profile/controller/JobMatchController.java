@@ -5,6 +5,7 @@ import com.screening.profile.model.Candidate;
 import com.screening.profile.service.PerplexityService;
 import com.screening.profile.service.candidate.CandidateService;
 import com.screening.profile.util.enums.Status;
+import com.screening.profile.util.parser.PdfParsingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,8 @@ public class JobMatchController {
         candidateReqDTO.setEmail(email);
         candidateReqDTO.setPhoneNumber(phoneNumber);
         candidateReqDTO.setDob(dob);
+        candidateReqDTO.setResumeText(PdfParsingUtil.extractText(resumePdf));
+
         Candidate candidate = this.perplexityService.askPerplexityForPrompt(resumePdf, jobId, candidateReqDTO);
         if (candidate == null) {
             return ResponseEntity

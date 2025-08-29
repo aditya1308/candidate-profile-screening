@@ -2,6 +2,7 @@ package com.screening.profile.service.candidate.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.screening.profile.dto.CandidateReqDTO;
+import com.screening.profile.exception.DuplicateCandidateException;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.model.JobApplication;
 import com.screening.profile.repository.CandidateRepository;
@@ -10,6 +11,7 @@ import com.screening.profile.service.job.JobService;
 import com.screening.profile.service.candidate.CandidateService;
 import com.screening.profile.util.enums.Status;
 import lombok.extern.slf4j.Slf4j;
+import me.xdrop.fuzzywuzzy.FuzzySearch;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +26,8 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class CandidateServiceImpl implements CandidateService {
+
+    private static final int SIMILARITY_THRESHOLD = 90;
 
     private final CandidateRepository candidateRepository;
     private final JobApplicationRepository jobApplicationRepository;
@@ -57,6 +61,27 @@ public class CandidateServiceImpl implements CandidateService {
                 return null;
             }
         }
+
+        //Duplicacy check on content similarity with different email and phoneNumber
+        List<JobApplication> allJobApplications = jobApplicationRepository.findByJobId(jobId);
+
+        boolean isDuplicate = allJobApplications.stream()
+                .map(JobApplication::getCandidate)
+                .filter(candidateForThisApplication -> candidateForThisApplication.getName().equals(candidateReqDTO.getName())
+                        && candidateForThisApplication.getDateOfBirth().equals(candidateReqDTO.getDob()))
+                .anyMatch(candidateForThisApplication -> {
+                    int similarityScore = FuzzySearch.ratio(
+                            candidateReqDTO.getResumeText(),
+                            candidateForThisApplication.getResumeText()
+                    );
+                    return similarityScore >= SIMILARITY_THRESHOLD;
+                });
+
+        if (isDuplicate) {
+            log.info("You have already applied for this job role with different email/phone number");
+            throw new DuplicateCandidateException("You have already applied for this job role with different email/phone number");
+        }
+
         String summary = objectMapper.readTree(text).get("summary").asText();
         Integer score = objectMapper.readTree(text).get("score").asInt();
         List<String> matchedSkills = objectMapper.readerForListOf(String.class).readValue(objectMapper.readTree(text).get("matchedSkills"));
@@ -70,6 +95,7 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setUniqueId(uniqueId);
         candidate.setMatchedSkills(matchedSkills);
         candidate.setStatus(Status.IN_PROCESS);
+        candidate.setResumeText(candidateReqDTO.getResumeText());
         log.info(candidate.toString());
         candidateRepository.save(candidate);
         JobApplication newJobApplication = new JobApplication();
