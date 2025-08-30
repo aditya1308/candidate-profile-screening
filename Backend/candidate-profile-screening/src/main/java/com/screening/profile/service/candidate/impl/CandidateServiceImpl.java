@@ -8,8 +8,10 @@ import com.screening.profile.exception.ServiceException;
 import com.screening.profile.exception.DuplicateCandidateException;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.model.JobApplication;
+import com.screening.profile.model.Interview;
 import com.screening.profile.repository.CandidateRepository;
 import com.screening.profile.repository.JobApplicationRepository;
+import com.screening.profile.repository.InterviewRepository;
 import com.screening.profile.service.job.JobService;
 import com.screening.profile.service.candidate.CandidateService;
 import com.screening.profile.util.enums.Status;
@@ -39,11 +41,13 @@ public class CandidateServiceImpl implements CandidateService {
 
     private final CandidateRepository candidateRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final InterviewRepository interviewRepository;
     private final JobService jobService;
 
-    public CandidateServiceImpl(CandidateRepository candidateRepository, JobApplicationRepository jobApplicationRepository, JobService jobService) {
+    public CandidateServiceImpl(CandidateRepository candidateRepository, JobApplicationRepository jobApplicationRepository, InterviewRepository interviewRepository, JobService jobService) {
         this.candidateRepository = candidateRepository;
         this.jobApplicationRepository = jobApplicationRepository;
+        this.interviewRepository = interviewRepository;
         this.jobService = jobService;
     }
 
@@ -114,6 +118,10 @@ public class CandidateServiceImpl implements CandidateService {
         newJobApplication.setJob(jobService.getJob(Math.toIntExact(jobId)).get());
         newJobApplication.setApplicationDate(LocalDateTime.now());
         jobApplicationRepository.save(newJobApplication);
+        Interview interview = new Interview();
+        interview.setJobApplication(newJobApplication);
+        interviewRepository.save(interview);
+        
         return candidate;
     }
 
