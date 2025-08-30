@@ -29,6 +29,18 @@ public class Interview {
     @Column(name = "round3_details", columnDefinition = "json")
     private Feedback round3Details;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "round1_interviewer_id")
+    private Admin round1Interviewer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "round2_interviewer_id")
+    private Admin round2Interviewer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "round3_interviewer_id")
+    private Admin round3Interviewer;
+
     @Lob
     @Column(name = "feedback_summary", columnDefinition = "TEXT")
     private String feedback;
