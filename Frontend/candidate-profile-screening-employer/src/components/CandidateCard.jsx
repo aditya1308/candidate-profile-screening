@@ -12,6 +12,8 @@ const CandidateCard = ({
   onCopyPhone, 
   onOpenEmail,
   onStatusUpdate,
+  onShowToast,
+  onShowInterviewerSelection,
   getScoreColor,
   formatDate 
 }) => {
@@ -36,6 +38,8 @@ const CandidateCard = ({
           candidate={candidate}
           activeTab={activeTab}
           onStatusUpdate={onStatusUpdate}
+          onShowToast={onShowToast}
+          onShowInterviewerSelection={onShowInterviewerSelection}
         />
       )}
     </div>

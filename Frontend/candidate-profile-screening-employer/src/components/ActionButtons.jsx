@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Check, X } from 'lucide-react';
 import Button3D from './Button3D';
 
-const ActionButtons = ({ activeTab, candidateId, onStatusUpdate }) => {
+const ActionButtons = ({ activeTab, candidateId, candidateName, onStatusUpdate, onShowToast, onShowInterviewerSelection }) => {
+  const handleStatusUpdateWithInterviewer = (newStatus) => {
+    if (onShowInterviewerSelection) {
+      onShowInterviewerSelection(newStatus);
+    }
+  };
+
   const getActionButtons = () => {
     switch (activeTab) {
       case "applied":
         return [
           {
-            onClick: () => onStatusUpdate(candidateId, "IN_PROCESS_ROUND1"),
+            onClick: () => handleStatusUpdateWithInterviewer("IN_PROCESS_ROUND1"),
             buttonColor: "bg-green-600",
             shadowColor: "bg-green-800",
             icon: <Check className="w-3 h-3 mr-1" />,
@@ -25,7 +31,7 @@ const ActionButtons = ({ activeTab, candidateId, onStatusUpdate }) => {
       case "round1":
         return [
           {
-            onClick: () => onStatusUpdate(candidateId, "IN_PROCESS_ROUND2"),
+            onClick: () => handleStatusUpdateWithInterviewer("IN_PROCESS_ROUND2"),
             buttonColor: "bg-green-600",
             shadowColor: "bg-green-800",
             icon: <Check className="w-3 h-3 mr-1" />,
@@ -42,7 +48,7 @@ const ActionButtons = ({ activeTab, candidateId, onStatusUpdate }) => {
       case "round2":
         return [
           {
-            onClick: () => onStatusUpdate(candidateId, "IN_PROCESS_ROUND3"),
+            onClick: () => handleStatusUpdateWithInterviewer("IN_PROCESS_ROUND3"),
             buttonColor: "bg-green-600",
             shadowColor: "bg-green-800",
             icon: <Check className="w-3 h-3 mr-1" />,
