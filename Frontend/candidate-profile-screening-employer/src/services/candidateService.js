@@ -25,12 +25,21 @@ export const candidateService = {
    * Update candidate status
    * Uses the backend API: PUT /api/v1/update-status
    */
-  async updateCandidateStatus(candidateId, newStatus) {
+  async updateCandidateStatus(candidateId, newStatus, interviewId = null, interviewerEmail = null) {
     try {
       const params = new URLSearchParams({
         id: candidateId,
         status: newStatus
       });
+      
+      // Add optional parameters if provided
+      if (interviewId !== null && interviewId !== undefined) {
+        params.append('interviewId', interviewId);
+      }
+      
+      if (interviewerEmail !== null && interviewerEmail !== undefined && interviewerEmail !== '') {
+        params.append('interviewerEmail', interviewerEmail);
+      }
       
       const response = await apiRequest(`${API_CONFIG.BASE_URL}/update-status?${params}`, {
         method: 'PUT'
