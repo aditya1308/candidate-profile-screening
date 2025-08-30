@@ -4,12 +4,35 @@ import { useState, useRef, useEffect } from 'react';
 import SGLogo from '../assets/SG.svg';
 import { stringUtils } from '../services/utilityService';
 import Footer from '../components/Footer';
+import { UserPlus } from 'lucide-react';
+import { authService } from '../services/authService';
 
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  
+  // Get email from JWT token if not available in user object
+  const getUserEmail = () => {
+    if (user?.email) {
+      return user.email;
+    }
+    
+    // Try to get email from JWT token directly
+    try {
+      const token = authService.getToken();
+      if (token) {
+        const decoded = authService.decodeToken(token);
+        return decoded?.sub || decoded?.email || 'No email available';
+      }
+    } catch (error) {
+      console.error('Error extracting email from token:', error);
+    }
+    
+    return 'No email available';
+  };
 
   const handleLogout = () => {
     logout();
@@ -74,7 +97,7 @@ const Header = () => {
                 {/* User Info in Dropdown */}
                 <div className="px-4 py-3 border-b border-gray-100">
                   <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.email || 'user@example.com'}</p>
+                  <p className="text-xs text-gray-500">{getUserEmail()}</p>
                 </div>
                 
                 {/* Menu Items */}

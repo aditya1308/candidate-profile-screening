@@ -1,3 +1,5 @@
+import { authService } from './authService.js';
+
 // Centralized API configuration
 export const API_CONFIG = {
   BASE_URL: 'http://localhost:8092/api/v1',
@@ -6,10 +8,16 @@ export const API_CONFIG = {
 };
 
 // Common headers for API requests
-export const getDefaultHeaders = () => ({
-  'Content-Type': 'application/json',
-  'Accept': 'application/json'
-});
+export const getDefaultHeaders = () => {
+  const baseHeaders = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  };
+  
+  // Add JWT token if available
+  const authHeader = authService.getAuthHeader();
+  return { ...baseHeaders, ...authHeader };
+};
 
 // Error handling utility
 export const handleApiError = (error, context = 'API request') => {
@@ -17,6 +25,13 @@ export const handleApiError = (error, context = 'API request') => {
   
   if (error.name === 'TypeError' && error.message.includes('fetch')) {
     return new Error('Network error: Unable to connect to server');
+  }
+  
+  if (error.status === 401) {
+    // Unauthorized - clear auth data and redirect to login
+    authService.logout();
+    window.location.href = '/login';
+    return new Error('Session expired. Please login again.');
   }
   
   if (error.status === 404) {

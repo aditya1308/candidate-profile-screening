@@ -27,4 +27,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(error);
     }
+
+    @ExceptionHandler(DuplicateCandidateException.class)
+    public ResponseEntity<String> handleDuplicateCandidate(DuplicateCandidateException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ex.getMessage());
+    }
 }

@@ -4,6 +4,7 @@ import { ProtectedRoute } from './routes/ProtectedRoute';
 import Layout from './layouts/Layout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import SuperAdminPage from './pages/SuperAdminPage';
 import HRJobDetailsPage from './pages/HRJobDetailsPage';
 import InterviewerJobDetailsPage from './pages/InterviewerJobDetailsPage';
 import { useAuth } from './context/useAuth';
@@ -11,7 +12,15 @@ import './App.css';
 
 const RoleBasedJobDetails = () => {
   const { user } = useAuth();
-  return user?.role === 'HR' ? <HRJobDetailsPage /> : <InterviewerJobDetailsPage />;
+  return user?.role === 'INTERVIEWER' ? <InterviewerJobDetailsPage /> : <HRJobDetailsPage />;
+};
+
+const RoleBasedDashboard = () => {
+  const { user } = useAuth();
+  if (user?.role === 'SUPERADMIN') {
+    return <SuperAdminPage />;
+  }
+  return <DashboardPage />;
 };
 
 const ProtectedLayout = ({ children }) => {
@@ -32,7 +41,7 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedLayout>
-                <DashboardPage />
+                <RoleBasedDashboard />
               </ProtectedLayout>
             }
           />
@@ -41,6 +50,14 @@ function App() {
             element={
               <ProtectedLayout>
                 <RoleBasedJobDetails />
+              </ProtectedLayout>
+            }
+          />
+          <Route
+            path="/onboard"
+            element={
+              <ProtectedLayout>
+                <SuperAdminPage />
               </ProtectedLayout>
             }
           />

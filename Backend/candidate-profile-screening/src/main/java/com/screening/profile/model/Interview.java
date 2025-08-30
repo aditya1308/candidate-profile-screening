@@ -29,7 +29,8 @@ public class Interview {
     @Column(name = "round3_details", columnDefinition = "json")
     private Feedback round3Details;
 
-    @Column(name = "feedback_summary", length = 1000)
+    @Lob
+    @Column(name = "feedback_summary", columnDefinition = "TEXT")
     private String feedback;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
