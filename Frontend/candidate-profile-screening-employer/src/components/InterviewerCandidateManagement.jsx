@@ -6,6 +6,7 @@ import ToastNotification from "./ToastNotification";
 import ResumeModal from "./ResumeModal";
 import Button3D from "./Button3D";
 import useToast from "../hooks/useToast";
+import { interviewService } from "../services/interviewService";
 import { 
   downloadResume, 
   openEmailClient, 
@@ -24,62 +25,11 @@ import {
   Copy
 } from 'lucide-react';
 
-// Mock candidate data for now (since backend is not implemented)
-const mockCandidates = [
-  {
-    id: 1,
-    name: "John Smith",
-    email: "john.smith@email.com",
-    phone: "+1 (555) 123-4567",
-    status: "PENDING",
-    matchedSkills: ["React", "JavaScript", "TypeScript", "Node.js"],
-    summary: "Experienced frontend developer with 3+ years of experience in React and modern JavaScript frameworks. Strong understanding of component-based architecture and state management.",
-    resumeData: "base64-encoded-resume-data",
-    appliedDate: "2024-01-15T10:30:00Z",
-    feedback: ""
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    email: "sarah.johnson@email.com",
-    phone: "+1 (555) 234-5678",
-    status: "PENDING",
-    matchedSkills: ["Python", "Django", "PostgreSQL", "AWS"],
-    summary: "Backend developer with expertise in Python and Django. Experience with database design and cloud deployment. Strong problem-solving skills and attention to detail.",
-    resumeData: "base64-encoded-resume-data",
-    appliedDate: "2024-01-14T14:20:00Z",
-    feedback: ""
-  },
-  {
-    id: 3,
-    name: "Michael Chen",
-    email: "michael.chen@email.com",
-    phone: "+1 (555) 345-6789",
-    status: "DONE",
-    matchedSkills: ["React", "Vue.js", "CSS3", "HTML5"],
-    summary: "Frontend specialist with experience in multiple frameworks. Strong UI/UX skills and responsive design expertise. Collaborative team player with excellent communication skills.",
-    resumeData: "base64-encoded-resume-data",
-    appliedDate: "2024-01-13T09:15:00Z",
-    feedback: "Strong technical skills and good communication. Recommended for next round."
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    email: "emily.davis@email.com",
-    phone: "+1 (555) 456-7890",
-    status: "DONE",
-    matchedSkills: ["JavaScript", "Node.js", "MongoDB", "Express"],
-    summary: "Full-stack developer with strong JavaScript skills. Experience with Node.js backend development and MongoDB. Quick learner with passion for new technologies.",
-    resumeData: "base64-encoded-resume-data",
-    appliedDate: "2024-01-12T16:45:00Z",
-    feedback: "Good technical foundation but needs more experience with our tech stack."
-  }
-];
-
-const InterviewerCandidateManagement = ({ jobId }) => {
+const InterviewerCandidateManagement = () => {
   const [activeTab, setActiveTab] = useState("pending");
   const [candidates, setCandidates] = useState([]);
-  const [allCandidates, setAllCandidates] = useState([]);
+  const [pendingCandidates, setPendingCandidates] = useState([]);
+  const [completedCandidates, setCompletedCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedResume, setSelectedResume] = useState(null);
@@ -94,37 +44,70 @@ const InterviewerCandidateManagement = ({ jobId }) => {
       setLoading(true);
       setError(null);
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Fetch both pending and completed interviews
+      const [pendingData, completedData] = await Promise.all([
+        interviewService.getPendingInterviews(),
+        interviewService.getCompletedInterviews()
+      ]);
 
-      // Filter candidates for this job (in real implementation, this would come from API)
-      const jobCandidates = mockCandidates.filter(candidate => 
-        candidate.jobId === jobId || true // For now, show all candidates
-      );
+      // Transform the data to match our component's expected format
+      const transformCandidateData = (interviewData, status) => {
+        console.log(`Transforming ${status} interviews:`, interviewData);
+        
+        return interviewData.map(interview => {
+          const transformed = {
+            id: interview.interviewId,
+            name: interview.candidate?.name || 'Unknown Candidate',
+            email: interview.candidate?.email || '',
+            phone: interview.candidate?.phoneNumber || '',
+            status: status,
+            matchedSkills: interview.candidate?.matchedSkills || [],
+            summary: interview.candidate?.summary || '',
+            resumeData: interview.candidate?.fileData || null,
+            appliedDate: new Date().toISOString(), // This will be populated from jobApplication if available
+            feedback: interview.feedback || '',
+            jobTitle: interview.jobApplication?.jobTitle || '',
+            jobLocation: interview.jobApplication?.jobLocation || '',
+            round1Details: interview.round1Details,
+            round2Details: interview.round2Details,
+            round3Details: interview.round3Details,
+            score: interview.candidate?.score || 0,
+            uniqueId: interview.candidate?.uniqueId || '',
+            resumeText: interview.candidate?.resumeText || ''
+          };
+          
+          console.log(`Transformed candidate ${transformed.name}:`, transformed);
+          return transformed;
+        });
+      };
 
-      setAllCandidates(jobCandidates);
+      const pending = transformCandidateData(pendingData, "PENDING");
+      const completed = transformCandidateData(completedData, "DONE");
+
+      setPendingCandidates(pending);
+      setCompletedCandidates(completed);
     } catch (err) {
       setError(err.message || "Failed to fetch candidates");
       console.error("Error fetching candidates:", err);
-      setCandidates([]);
-      setAllCandidates([]);
+      setPendingCandidates([]);
+      setCompletedCandidates([]);
     } finally {
       setLoading(false);
     }
-  }, [jobId]);
+  }, []);
 
   useEffect(() => {
     fetchCandidates();
   }, [fetchCandidates]);
 
   useEffect(() => {
-    if (allCandidates.length > 0) {
-      const filteredCandidates = allCandidates.filter(candidate => 
-        activeTab === "pending" ? candidate.status === "PENDING" : candidate.status === "DONE"
-      );
-      setCandidates(filteredCandidates);
+    // Set candidates based on active tab
+    if (activeTab === "pending") {
+      setCandidates(pendingCandidates);
+    } else {
+      setCandidates(completedCandidates);
     }
-  }, [allCandidates, activeTab]);
+  }, [activeTab, pendingCandidates, completedCandidates]);
 
   const handleSubmitFeedback = async (candidateId) => {
     try {
@@ -135,23 +118,16 @@ const InterviewerCandidateManagement = ({ jobId }) => {
         return;
       }
 
-      // Update candidate status and feedback
-      setAllCandidates((prev) =>
-        prev.map((candidate) =>
-          candidate.id === candidateId
-            ? { ...candidate, status: "DONE", feedback: feedback }
-            : candidate
-        )
-      );
-
+      // TODO: Implement actual API call to submit feedback
+      // For now, just show a success message
+      showToastMessage("Feedback submission will be implemented later", "info");
+      
       // Clear feedback input
       setFeedbackInputs((prev) => {
         const newInputs = { ...prev };
         delete newInputs[candidateId];
         return newInputs;
       });
-
-      showToastMessage("Feedback submitted successfully!", "success");
     } catch (err) {
       console.error("Error submitting feedback:", err);
       showToastMessage("Failed to submit feedback", "error");
@@ -205,12 +181,12 @@ const InterviewerCandidateManagement = ({ jobId }) => {
     {
       id: "pending",
       label: "Pending",
-      count: allCandidates.filter((c) => c.status === "PENDING").length,
+      count: pendingCandidates.length,
     },
     {
       id: "done",
       label: "Done",
-      count: allCandidates.filter((c) => c.status === "DONE").length,
+      count: completedCandidates.length,
     },
   ];
 
@@ -253,6 +229,14 @@ const InterviewerCandidateManagement = ({ jobId }) => {
                     {formatDate(candidate.appliedDate)}
                   </div>
                 </div>
+                {candidate.jobTitle && (
+                  <div className="flex items-center mt-1 text-xs text-gray-500">
+                    <Tag className="w-3 h-3 mr-1" />
+                    {candidate.jobTitle}
+                    {candidate.jobLocation && ` - ${candidate.jobLocation}`}
+                  </div>
+                )}
+
               </div>
             </div>
 
@@ -263,20 +247,24 @@ const InterviewerCandidateManagement = ({ jobId }) => {
                 {candidate.matchedSkills?.length || 0}
               </div>
               <div className="flex items-center ml-2 space-x-1">
-                <button
-                  onClick={() => openResumeModal(candidate.resumeData, candidate.name)}
-                  className="flex items-center px-2 py-1 text-xs text-blue-600 transition-all duration-500 ease-out rounded hover:text-blue-800 hover:bg-blue-50 hover:scale-110 hover:rotate-6 transform-gpu"
-                  title="Preview Resume"
-                >
-                  <Eye className="w-5 h-5 hover:animate-float" />
-                </button>
-                <button
-                  onClick={() => handleDownloadResume(candidate.resumeData, candidate.name)}
-                  className="flex items-center px-2 py-1 text-xs text-green-600 transition-all duration-500 ease-out rounded hover:text-green-800 hover:bg-green-50 hover:scale-110 hover:-rotate-6 transform-gpu"
-                  title="Download Resume"
-                >
-                  <Download className="w-5 h-5 hover:animate-float" />
-                </button>
+                {candidate.resumeData && (
+                  <>
+                    <button
+                      onClick={() => openResumeModal(candidate.resumeData, candidate.name)}
+                      className="flex items-center px-2 py-1 text-xs text-blue-600 transition-all duration-500 ease-out rounded hover:text-blue-800 hover:bg-blue-50 hover:scale-110 hover:rotate-6 transform-gpu"
+                      title="Preview Resume"
+                    >
+                      <Eye className="w-5 h-5 hover:animate-float" />
+                    </button>
+                    <button
+                      onClick={() => handleDownloadResume(candidate.resumeData, candidate.name)}
+                      className="flex items-center px-2 py-1 text-xs text-green-600 transition-all duration-500 ease-out rounded hover:text-green-800 hover:bg-green-50 hover:scale-110 hover:-rotate-6 transform-gpu"
+                      title="Download Resume"
+                    >
+                      <Download className="w-5 h-5 hover:animate-float" />
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => toggleCardExpansion(candidate.id)}
                   className="flex items-center px-2 py-1 text-xs text-gray-600 transition-all duration-500 ease-out rounded hover:text-gray-800 hover:bg-gray-50 hover:scale-110 transform-gpu"
@@ -293,64 +281,72 @@ const InterviewerCandidateManagement = ({ jobId }) => {
           </div>
         </div>
 
-        {/* Expanded Content */}
-        {isExpanded && (
-          <div className="border-t border-gray-200 bg-gray-50 p-4">
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Matched Skills</h4>
-              <div className="flex flex-wrap gap-2">
-                {candidate.matchedSkills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
+                 {/* Expanded Content */}
+         {isExpanded && (
+           <div className="p-6 border-t border-gray-200 bg-gray-50">
+             <div className="mb-6">
+               <h4 className="mb-3 text-sm font-medium text-gray-700">Matched Skills</h4>
+               <div className="flex flex-wrap gap-2">
+                 {candidate.matchedSkills && candidate.matchedSkills.length > 0 ? (
+                   candidate.matchedSkills.map((skill, index) => (
+                     <span
+                       key={index}
+                       className="px-2 py-1 text-xs text-blue-800 bg-blue-100 rounded-full"
+                     >
+                       {skill}
+                     </span>
+                   ))
+                 ) : (
+                   <span className="text-xs text-gray-500">No skills data available</span>
+                 )}
+               </div>
+             </div>
 
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Summary</h4>
-              <p className="text-gray-900 text-sm leading-relaxed">{candidate.summary}</p>
-            </div>
+             <div className="mb-6">
+               <h4 className="mb-3 text-sm font-semibold text-gray-700">Summary</h4>
+               <p className="text-sm leading-relaxed text-gray-900 font-semibold">
+                 {candidate.summary || 'No summary available'}
+               </p>
+             </div>
 
-            {isPending ? (
-              <div className="space-y-3">
-                <div>
-                  <label htmlFor={`feedback-${candidate.id}`} className="block text-sm font-medium text-gray-700 mb-2">
-                    Interview Feedback
-                  </label>
-                  <textarea
-                    id={`feedback-${candidate.id}`}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="Enter your interview feedback here..."
-                    value={feedbackInputs[candidate.id] || ""}
-                    onChange={(e) => handleFeedbackChange(candidate.id, e.target.value)}
-                  />
-                </div>
-                <div className="flex justify-end">
-                  <Button3D
-                    onClick={() => handleSubmitFeedback(candidate.id)}
-                    buttonColor="bg-green-600"
-                    shadowColor="bg-green-800"
-                    className="py-2 px-4 text-sm"
-                  >
-                    Submit Feedback
-                  </Button3D>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Submitted Feedback</h4>
-                <div className="bg-white p-3 rounded-md border border-gray-200">
-                  <p className="text-gray-900 text-sm">{candidate.feedback}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+             {isPending ? (
+               <div className="space-y-4">
+                 <div>
+                   <label htmlFor={`feedback-${candidate.id}`} className="block mb-3 text-sm font-medium text-gray-700">
+                     Interview Feedback
+                   </label>
+                   <textarea
+                     id={`feedback-${candidate.id}`}
+                     rows={3}
+                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Enter your interview feedback here..."
+                     value={feedbackInputs[candidate.id] || ""}
+                     onChange={(e) => handleFeedbackChange(candidate.id, e.target.value)}
+                   />
+                 </div>
+                 <div className="flex justify-end">
+                   <Button3D
+                     onClick={() => handleSubmitFeedback(candidate.id)}
+                     buttonColor="bg-green-600"
+                     shadowColor="bg-green-800"
+                     className="px-4 py-2 text-sm"
+                   >
+                     Submit Feedback
+                   </Button3D>
+                 </div>
+               </div>
+             ) : (
+               <div>
+                 <h4 className="mb-3 text-sm font-medium text-gray-700">Submitted Feedback</h4>
+                 <div className="p-4 bg-white border border-gray-200 rounded-md">
+                   <p className="text-sm text-gray-900">
+                     {candidate.feedback || 'No feedback submitted yet'}
+                   </p>
+                 </div>
+               </div>
+             )}
+           </div>
+         )}
       </div>
     );
   };
@@ -363,6 +359,12 @@ const InterviewerCandidateManagement = ({ jobId }) => {
     return (
       <div className="py-8 text-center">
         <p className="text-red-600">{error}</p>
+        <button 
+          onClick={fetchCandidates}
+          className="px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-700"
+        >
+          Retry
+        </button>
       </div>
     );
   }
