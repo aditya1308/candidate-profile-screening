@@ -9,7 +9,6 @@ import useToast from "../hooks/useToast";
 import { interviewService } from "../services/interviewService";
 import { 
   downloadResume, 
-  openEmailClient, 
   copyToClipboard,
   formatDate
 } from "../utils/candidateUtils";
@@ -54,27 +53,31 @@ const InterviewerCandidateManagement = () => {
       const transformCandidateData = (interviewData, status) => {
         console.log(`Transforming ${status} interviews:`, interviewData);
         
-        return interviewData.map(interview => {
-          const transformed = {
-            id: interview.interviewId,
-            name: interview.candidate?.name || 'Unknown Candidate',
-            email: interview.candidate?.email || '',
-            phone: interview.candidate?.phoneNumber || '',
-            status: status,
-            matchedSkills: interview.candidate?.matchedSkills || [],
-            summary: interview.candidate?.summary || '',
-            resumeData: interview.candidate?.fileData || null,
-            appliedDate: new Date().toISOString(), // This will be populated from jobApplication if available
-            feedback: interview.feedback || '',
-            jobTitle: interview.jobApplication?.jobTitle || '',
-            jobLocation: interview.jobApplication?.jobLocation || '',
-            round1Details: interview.round1Details,
-            round2Details: interview.round2Details,
-            round3Details: interview.round3Details,
-            score: interview.candidate?.score || 0,
-            uniqueId: interview.candidate?.uniqueId || '',
-            resumeText: interview.candidate?.resumeText || ''
-          };
+                 return interviewData.map(interview => {
+           const transformed = {
+             id: interview.interviewId,
+             name: interview.candidate?.name || 'Unknown Candidate',
+             email: interview.candidate?.email || '',
+             phone: interview.candidate?.phoneNumber || '',
+             status: status,
+             matchedSkills: interview.candidate?.matchedSkills || [],
+             summary: interview.candidate?.summary || '',
+             resumeData: interview.candidate?.fileData || null,
+             appliedDate: new Date().toISOString(), // This will be populated from jobApplication if available
+             feedback: interview.feedback || '',
+             jobTitle: interview.jobApplication?.jobTitle || '',
+             jobLocation: interview.jobApplication?.jobLocation || '',
+             jobApplicationId: interview.jobApplication?.id || null,
+             round1Details: interview.round1Details || null,
+             round2Details: interview.round2Details || null,
+             round3Details: interview.round3Details || null,
+             round1Interviewer: interview.round1Interviewer || null,
+             round2Interviewer: interview.round2Interviewer || null,
+             round3Interviewer: interview.round3Interviewer || null,
+             score: interview.candidate?.score || 0,
+             uniqueId: interview.candidate?.uniqueId || '',
+             resumeText: interview.candidate?.resumeText || ''
+           };
           
           console.log(`Transformed candidate ${transformed.name}:`, transformed);
           return transformed;
@@ -118,9 +121,70 @@ const InterviewerCandidateManagement = () => {
         return;
       }
 
-      // TODO: Implement actual API call to submit feedback
-      // For now, just show a success message
-      showToastMessage("Feedback submission will be implemented later", "info");
+      // Find the candidate to get the interview data
+      const candidate = candidates.find(c => c.id === candidateId);
+      if (!candidate) {
+        showToastMessage("Candidate not found", "error");
+        return;
+      }
+
+      // Get current user info for interviewer name
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const interviewerName = currentUser.name || "Current Interviewer";
+
+      // Determine which round to populate based on existing data
+      let round1Details = candidate.round1Details;
+      let round2Details = candidate.round2Details;
+      let round3Details = candidate.round3Details;
+
+      // Logic to determine which round to populate
+      if (!round1Details) {
+        // Round 1 is empty, populate it
+        round1Details = {
+          interviewerName: interviewerName,
+          feedback: feedback,
+          status: "IN_PROCESS_ROUND1"
+        };
+      } else if (!round2Details) {
+        // Round 1 exists but Round 2 is empty, populate Round 2
+        round2Details = {
+          interviewerName: interviewerName,
+          feedback: feedback,
+          status: "IN_PROCESS_ROUND2"
+        };
+      } else if (!round3Details) {
+        // Round 1 and 2 exist but Round 3 is empty, populate Round 3
+        round3Details = {
+          interviewerName: interviewerName,
+          feedback: feedback,
+          status: "IN_PROCESS_ROUND3"
+        };
+      } else {
+        // All rounds are filled, update the latest round (Round 3)
+        round3Details = {
+          interviewerName: interviewerName,
+          feedback: feedback,
+          status: "IN_PROCESS_ROUND3"
+        };
+      }
+
+      // Prepare feedback data according to the backend model
+      const feedbackData = {
+        round1Details: round1Details,
+        round2Details: round2Details,
+        round3Details: round3Details,
+        feedback: feedback, // Overall feedback
+        jobApplication: {
+          id: candidate.jobApplicationId || null
+        }
+      };
+
+      console.log('Submitting feedback data:', feedbackData);
+
+      // Call the API to submit feedback
+      await interviewService.submitFeedback(candidateId, feedbackData);
+      
+      showToastMessage("Feedback submitted successfully!", "success");
       
       // Clear feedback input
       setFeedbackInputs((prev) => {
@@ -128,9 +192,13 @@ const InterviewerCandidateManagement = () => {
         delete newInputs[candidateId];
         return newInputs;
       });
+
+      // Refresh the data to show updated status
+      await fetchCandidates();
+      
     } catch (err) {
       console.error("Error submitting feedback:", err);
-      showToastMessage("Failed to submit feedback", "error");
+      showToastMessage("Failed to submit feedback: " + (err.message || "Unknown error"), "error");
     }
   };
 
@@ -165,10 +233,7 @@ const InterviewerCandidateManagement = () => {
     showToastMessage(result.message, result.success ? "success" : "error");
   };
 
-  const handleOpenEmail = (email, candidateName) => {
-    const result = openEmailClient(email, candidateName);
-    showToastMessage(result.message, result.success ? "success" : "error");
-  };
+
 
   const handleFeedbackChange = (candidateId, value) => {
     setFeedbackInputs((prev) => ({
@@ -309,42 +374,56 @@ const InterviewerCandidateManagement = () => {
                </p>
              </div>
 
-             {isPending ? (
-               <div className="space-y-4">
-                 <div>
-                   <label htmlFor={`feedback-${candidate.id}`} className="block mb-3 text-sm font-medium text-gray-700">
-                     Interview Feedback
-                   </label>
-                   <textarea
-                     id={`feedback-${candidate.id}`}
-                     rows={3}
-                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                     placeholder="Enter your interview feedback here..."
-                     value={feedbackInputs[candidate.id] || ""}
-                     onChange={(e) => handleFeedbackChange(candidate.id, e.target.value)}
-                   />
-                 </div>
-                 <div className="flex justify-end">
-                   <Button3D
-                     onClick={() => handleSubmitFeedback(candidate.id)}
-                     buttonColor="bg-green-600"
-                     shadowColor="bg-green-800"
-                     className="px-4 py-2 text-sm"
-                   >
-                     Submit Feedback
-                   </Button3D>
-                 </div>
-               </div>
-             ) : (
-               <div>
-                 <h4 className="mb-3 text-sm font-medium text-gray-700">Submitted Feedback</h4>
-                 <div className="p-4 bg-white border border-gray-200 rounded-md">
-                   <p className="text-sm text-gray-900">
-                     {candidate.feedback || 'No feedback submitted yet'}
-                   </p>
-                 </div>
-               </div>
-             )}
+                           {isPending ? (
+                <div className="space-y-4">
+                  <div>
+                    {(() => {
+                      let roundNumber = 1;
+                      if (candidate.round1Details) roundNumber = 2;
+                      if (candidate.round2Details) roundNumber = 3;
+                      if (candidate.round3Details) roundNumber = 3; // Max round
+                      
+                      return (
+                        <label htmlFor={`feedback-${candidate.id}`} className="block mb-3 text-sm font-medium text-gray-700">
+                          Round {roundNumber} Interview Feedback
+                        </label>
+                      );
+                    })()}
+                    <textarea
+                      id={`feedback-${candidate.id}`}
+                      rows={3}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter your interview feedback here..."
+                      value={feedbackInputs[candidate.id] || ""}
+                      onChange={(e) => handleFeedbackChange(candidate.id, e.target.value)}
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <Button3D
+                      onClick={() => handleSubmitFeedback(candidate.id)}
+                      buttonColor="bg-green-600"
+                      shadowColor="bg-green-800"
+                      className="px-4 py-2 text-sm"
+                    >
+                      Submit Feedback
+                    </Button3D>
+                  </div>
+                </div>
+                           ) : (
+                <div>
+                  {/* Overall Feedback Summary */}
+                  {candidate.feedback && (
+                    <div>
+                      <h4 className="mb-3 text-sm font-semibold text-gray-700">Overall Feedback Summary</h4>
+                      <div className="p-4 bg-white border border-gray-200 rounded-md">
+                        <p className="text-sm text-gray-900 leading-relaxed">
+                          {candidate.feedback}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
            </div>
          )}
       </div>
