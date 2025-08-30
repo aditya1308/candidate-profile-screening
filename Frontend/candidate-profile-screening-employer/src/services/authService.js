@@ -225,6 +225,10 @@ export const authService = {
         decoded.name = decoded.sub;
       }
       
+      // Extract email from JWT - in our backend, email is stored in 'sub' field
+      if (!decoded.email && decoded.sub) {
+        decoded.email = decoded.sub;
+      }
       return decoded;
     } catch (error) {
       console.error('Error decoding token:', error);
