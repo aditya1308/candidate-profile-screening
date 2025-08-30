@@ -4,7 +4,6 @@ import com.screening.profile.dto.InterviewDTO;
 import com.screening.profile.dto.InterviewerPageResponseDTO;
 import com.screening.profile.model.Interview;
 import com.screening.profile.util.SetInterviewerRequest;
-import org.springframework.data.repository.query.Param;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,5 +14,4 @@ public interface InterviewService {
     Interview setInterviewer(Integer id, SetInterviewerRequest request);
     List<InterviewerPageResponseDTO> findPendingInterviewsForInterviewer(String email);
     List<InterviewerPageResponseDTO> findCompletedInterviewsForInterviewer(String email);
-
 }

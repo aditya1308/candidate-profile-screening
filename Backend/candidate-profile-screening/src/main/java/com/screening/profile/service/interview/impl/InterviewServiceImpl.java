@@ -11,7 +11,6 @@ import com.screening.profile.service.PerplexityService;
 import com.screening.profile.service.candidate.CandidateService;
 import com.screening.profile.service.interview.InterviewService;
 import com.screening.profile.util.SetInterviewerRequest;
-import com.screening.profile.util.enums.Role;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
