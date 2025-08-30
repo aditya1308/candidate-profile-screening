@@ -102,7 +102,19 @@ public class InterviewServiceImpl implements InterviewService {
             Job j = i.getJobApplication().getJob();
 
             InterviewerPageResponseDTO.CandidateInfo candidateDto =
-                    new InterviewerPageResponseDTO.CandidateInfo(c.getId(), c.getName(), c.getEmail(), c.getPhoneNumber(), c.getDateOfBirth(), c.getFileData());
+                    new InterviewerPageResponseDTO.CandidateInfo(
+                        c.getId(), 
+                        c.getName(), 
+                        c.getEmail(), 
+                        c.getPhoneNumber(), 
+                        c.getDateOfBirth(), 
+                        c.getFileData(),
+                        c.getScore(),
+                        c.getSummary(),
+                        c.getUniqueId(),
+                        c.getMatchedSkills(),
+                        c.getResumeText()
+                    );
 
             InterviewerPageResponseDTO.JobApplicationInfo jobAppDto =
                     new InterviewerPageResponseDTO.JobApplicationInfo(i.getJobApplication().getId(), j.getTitle(), j.getLocation());
@@ -128,7 +140,19 @@ public class InterviewServiceImpl implements InterviewService {
             Job j = i.getJobApplication().getJob();
 
             InterviewerPageResponseDTO.CandidateInfo candidateDto =
-                    new InterviewerPageResponseDTO.CandidateInfo(c.getId(), c.getName(), c.getEmail(), c.getPhoneNumber(), c.getDateOfBirth(), c.getFileData());
+                    new InterviewerPageResponseDTO.CandidateInfo(
+                        c.getId(), 
+                        c.getName(), 
+                        c.getEmail(), 
+                        c.getPhoneNumber(), 
+                        c.getDateOfBirth(), 
+                        c.getFileData(),
+                        c.getScore(),
+                        c.getSummary(),
+                        c.getUniqueId(),
+                        c.getMatchedSkills(),
+                        c.getResumeText()
+                    );
 
             InterviewerPageResponseDTO.JobApplicationInfo jobAppDto =
                     new InterviewerPageResponseDTO.JobApplicationInfo(i.getJobApplication().getId(), j.getTitle(), j.getLocation());
