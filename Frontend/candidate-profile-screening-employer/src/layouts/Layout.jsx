@@ -10,9 +10,7 @@ import { authService } from '../services/authService';
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  
-  // Debug user object
-  console.log('User object in Header:', user);
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   
@@ -27,7 +25,6 @@ const Header = () => {
       const token = authService.getToken();
       if (token) {
         const decoded = authService.decodeToken(token);
-        console.log('Decoded token for email extraction:', decoded);
         return decoded?.sub || decoded?.email || 'No email available';
       }
     } catch (error) {

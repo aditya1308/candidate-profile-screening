@@ -218,9 +218,6 @@ export const authService = {
       
       const decoded = JSON.parse(jsonPayload);
       
-      console.log('Raw decoded JWT payload:', decoded);
-      console.log('Available fields:', Object.keys(decoded));
-      
       // Add some basic user info if not present
       if (!decoded.name && decoded.fullName) {
         decoded.name = decoded.fullName;
@@ -231,18 +228,7 @@ export const authService = {
       // Extract email from JWT - in our backend, email is stored in 'sub' field
       if (!decoded.email && decoded.sub) {
         decoded.email = decoded.sub;
-        console.log('Extracted email from sub field:', decoded.email);
       }
-      
-      // Also check if email is directly available
-      if (decoded.email) {
-        console.log('Email found in token:', decoded.email);
-      } else {
-        console.log('No email found in token. Sub field:', decoded.sub);
-      }
-      
-      console.log('Final decoded user info:', decoded);
-      
       return decoded;
     } catch (error) {
       console.error('Error decoding token:', error);

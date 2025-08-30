@@ -12,9 +12,7 @@ export const storageService = {
   getUser: () => {
     try {
       const user = sessionStorage.getItem('user');
-      const parsedUser = user ? JSON.parse(user) : null;
-      console.log('Retrieved user from storage:', parsedUser);
-      return parsedUser;
+      return user ? JSON.parse(user) : null;
     } catch (error) {
       console.error('Error reading user from sessionStorage:', error);
       return null;
