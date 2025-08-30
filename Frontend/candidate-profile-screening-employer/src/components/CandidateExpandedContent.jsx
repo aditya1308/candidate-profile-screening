@@ -5,7 +5,9 @@ import ActionButtons from './ActionButtons';
 const CandidateExpandedContent = ({ 
   candidate, 
   activeTab, 
-  onStatusUpdate 
+  onStatusUpdate,
+  onShowToast,
+  onShowInterviewerSelection
 }) => {
   const getCommentsContent = () => {
     switch (activeTab) {
@@ -77,7 +79,10 @@ const CandidateExpandedContent = ({
         <ActionButtons 
           activeTab={activeTab} 
           candidateId={candidate.id} 
-          onStatusUpdate={onStatusUpdate} 
+          candidateName={candidate.fullName}
+          onStatusUpdate={onStatusUpdate}
+          onShowToast={onShowToast}
+          onShowInterviewerSelection={onShowInterviewerSelection}
         />
       </div>
     </div>

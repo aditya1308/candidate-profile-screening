@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { candidateService } from "../services/candidateService";
 import TabNavigation from "./TabNavigation";
 import CandidateCard from "./CandidateCard";
+import InterviewerSelectionScreen from "./InterviewerSelectionModal";
 import LoadingSpinner from "./LoadingSpinner";
 import EmptyState from "./EmptyState";
 import ToastNotification from "./ToastNotification";
@@ -25,6 +26,11 @@ const ApplicantManagement = ({ jobId }) => {
   const [selectedResume, setSelectedResume] = useState(null);
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [expandedCards, setExpandedCards] = useState(new Set());
+  
+  // Interviewer selection state
+  const [showInterviewerSelection, setShowInterviewerSelection] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null);
   
   const { showToast, toastMessage, toastType, showToastMessage } = useToast();
 
@@ -97,6 +103,45 @@ const ApplicantManagement = ({ jobId }) => {
     } catch (err) {
       console.error("Error updating candidate status:", err);
       alert(`Failed to update candidate status: ${err.message}`);
+    }
+  };
+
+  const handleShowInterviewerSelection = (candidate, newStatus) => {
+    // Only show interviewer selection for Applied, Round1, and Round2 tabs
+    if (['applied', 'round1', 'round2'].includes(activeTab)) {
+      setSelectedCandidate(candidate);
+      setPendingStatusUpdate(newStatus);
+      setShowInterviewerSelection(true);
+    }
+  };
+
+  const handleInterviewerSelected = (interviewer) => {
+    // For now, we'll use the existing API call as requested
+    // Later this can be updated to include interviewer information
+    console.log('Selected interviewer:', interviewer);
+    handleStatusUpdate(selectedCandidate.id, pendingStatusUpdate);
+    
+    // Show success toast
+    showToastMessage(`Interviewer ${interviewer.fullName} assigned successfully!`, 'success');
+    
+    // Go back to candidate view
+    setShowInterviewerSelection(false);
+    setSelectedCandidate(null);
+    setPendingStatusUpdate(null);
+  };
+
+  const handleBackToCandidate = () => {
+    setShowInterviewerSelection(false);
+    setSelectedCandidate(null);
+    setPendingStatusUpdate(null);
+  };
+
+  const getNextRound = (currentRound) => {
+    switch (currentRound) {
+      case "applied": return "round1";
+      case "round1": return "round2";
+      case "round2": return "round3";
+      default: return "";
     }
   };
 
@@ -184,6 +229,11 @@ const ApplicantManagement = ({ jobId }) => {
   const handleTabSwitch = (newTabId) => {
     if (newTabId === activeTab) return;
 
+    // Reset interviewer selection screen when switching tabs
+    setShowInterviewerSelection(false);
+    setSelectedCandidate(null);
+    setPendingStatusUpdate(null);
+
     if (allCandidates.length > 0) {
       const filteredCandidates = filterCandidatesByTab(allCandidates, newTabId);
       setCandidates(filteredCandidates);
@@ -207,6 +257,8 @@ const ApplicantManagement = ({ jobId }) => {
         onCopyPhone={handleCopyPhone}
         onOpenEmail={handleOpenEmail}
         onStatusUpdate={handleStatusUpdate}
+        onShowToast={showToastMessage}
+        onShowInterviewerSelection={(newStatus) => handleShowInterviewerSelection(candidate, newStatus)}
         getScoreColor={getScoreColor}
         formatDate={formatDate}
       />
@@ -238,6 +290,17 @@ const ApplicantManagement = ({ jobId }) => {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+
+        @keyframes modalFadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
           }
         }
 
@@ -290,6 +353,10 @@ const ApplicantManagement = ({ jobId }) => {
           animation: fadeIn 0.6s ease-out forwards;
         }
 
+        .animate-modalFadeIn {
+          animation: modalFadeIn 0.3s ease-out forwards;
+        }
+
         .animate-slideDown {
           animation: slideDown 0.4s ease-out forwards;
         }
@@ -316,9 +383,17 @@ const ApplicantManagement = ({ jobId }) => {
           onTabSwitch={handleTabSwitch} 
         />
 
-        {/* Candidate Cards Grid */}
+        {/* Candidate Cards Grid or Interviewer Selection Screen */}
         <div className="space-y-3">
-          {candidates.length === 0 ? (
+          {showInterviewerSelection && selectedCandidate && ['applied', 'round1', 'round2'].includes(activeTab) ? (
+            <InterviewerSelectionScreen
+              candidate={selectedCandidate}
+              onBack={handleBackToCandidate}
+              onConfirm={handleInterviewerSelected}
+              currentRound={activeTab}
+              nextRound={getNextRound(activeTab)}
+            />
+          ) : candidates.length === 0 ? (
             <EmptyState activeTabLabel={activeTabLabel} />
           ) : (
             candidates.map(renderCandidateCard)
