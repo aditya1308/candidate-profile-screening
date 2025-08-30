@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import Button3D from './Button3D';
 
 const JobFormModal = ({ isOpen, onClose, onSubmit, job = null, isLoading = false }) => {
   const [formData, setFormData] = useState({
@@ -180,28 +181,36 @@ const JobFormModal = ({ isOpen, onClose, onSubmit, job = null, isLoading = false
           {/* Footer with Buttons - Fixed */}
           <div className="flex-shrink-0 px-4 py-4 border-t bg-gray-50 rounded-b-lg mt-2">
             <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm text-white bg-sg-red rounded-lg hover:bg-sg-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 mr-2 border-b-2 border-white rounded-full animate-spin"></div>
-                    {job ? 'Updating...' : 'Creating...'}
-                  </div>
-                ) : (
-                  job ? 'Update Job' : 'Create Job'
-                )}
-              </button>
+              <div className="w-24">
+                <Button3D
+                  type="button"
+                  onClick={onClose}
+                  buttonColor="bg-white"
+                  shadowColor="bg-gray-300"
+                  className="text-xs py-1.5 px-3 rounded-md border border-gray-300"
+                  disabled={isLoading}
+                >
+                  <span className="text-gray-700 font-medium">Cancel</span>
+                </Button3D>
+              </div>
+              <div className="w-28">
+                <Button3D
+                  type="submit"
+                  buttonColor="bg-sg-red"
+                  shadowColor="bg-red-800"
+                  className="text-xs py-1.5 px-3 rounded-md"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-3 h-3 mr-1.5 border-b-2 border-white rounded-full animate-spin"></div>
+                      {job ? 'Updating...' : 'Creating...'}
+                    </div>
+                  ) : (
+                    job ? 'Update Job' : 'Create Job'
+                  )}
+                </Button3D>
+              </div>
             </div>
           </div>
         </form>

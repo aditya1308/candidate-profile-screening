@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import SGLogo from '../assets/SG.svg';
 import Button3D from '../components/Button3D';
@@ -16,7 +16,6 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const { login, register } = useAuth();
 
   const handleLoginSubmit = async (e) => {
@@ -27,8 +26,8 @@ const LoginPage = () => {
     try {
       const success = await login(credentials.email, credentials.password);
       if (success) {
-        const from = location.state?.from?.pathname || '/dashboard';
-        navigate(from, { replace: true });
+        // Always redirect to dashboard after successful login
+        navigate('/dashboard', { replace: true });
       } else {
         setError('Invalid email or password');
       }
