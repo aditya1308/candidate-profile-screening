@@ -18,6 +18,7 @@ public class CandidateInterviewDTO {
     private List<String> matchedSkills;
     private String name;
     private String phoneNumber;
+    private String resumeText;
     private Integer score;
     private String status;
     private String summary;

@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.screening.profile.util.parser.PdfParsingUtil.extractText;
+
 @Service
 @Slf4j
 public class CandidateServiceImpl implements CandidateService {
@@ -48,6 +50,8 @@ public class CandidateServiceImpl implements CandidateService {
     @Override
     public Candidate extractAndSaveCandidateDetails(MultipartFile resume, String text, Long jobId, CandidateReqDTO candidateReqDTO) throws IOException {
         Candidate candidate = new Candidate();
+        String resumeText = extractText(resume);
+        candidateReqDTO.setResumeText(resumeText);
         ObjectMapper objectMapper = new ObjectMapper();
         String email = candidateReqDTO.getEmail();
         String name = candidateReqDTO.getName();
@@ -80,6 +84,7 @@ public class CandidateServiceImpl implements CandidateService {
                             candidateReqDTO.getResumeText(),
                             candidateForThisApplication.getResumeText()
                     );
+                    log.info("Similarity score : {}", similarityScore);
                     return similarityScore >= SIMILARITY_THRESHOLD;
                 });
 
@@ -101,6 +106,7 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setUniqueId(uniqueId);
         candidate.setMatchedSkills(matchedSkills);
         candidate.setStatus(Status.IN_PROCESS);
+        candidate.setResumeText(resumeText);
         log.info(candidate.toString());
         candidateRepository.save(candidate);
         JobApplication newJobApplication = new JobApplication();
@@ -165,14 +171,15 @@ public class CandidateServiceImpl implements CandidateService {
                     matchedSkills,                   // parsed List<String>
                     (String) row[5],                 // name
                     (String) row[6],                 // phone_number
-                    row[7] != null ? ((Number)row[7]).intValue() : null,  // score
-                    (String) row[8],                 // status
-                    (String) row[9],                 // summary
-                    (String) row[10],                // unique_id
-                    (String) row[11],                // feedback_summary
-                    (String) row[12],                // round1Feedback
-                    (String) row[13],                // round2Feedback
-                    (String) row[14]                 // round3Feedback
+                    null,
+                    row[8] != null ? ((Number)row[8]).intValue() : null,  // score
+                    (String) row[9],                 // status
+                    (String) row[10],                 // summary
+                    (String) row[11],                // unique_id
+                    (String) row[12],                // feedback_summary
+                    (String) row[13],                // round1Feedback
+                    (String) row[14],                // round2Feedback
+                    (String) row[15]                 // round3Feedback
             );
             dtoList.add(dto);
         }

@@ -4,6 +4,8 @@ import com.screening.profile.dto.InterviewDTO;
 import com.screening.profile.dto.InterviewerPageResponseDTO;
 import com.screening.profile.model.*;
 import com.screening.profile.repository.AdminRepository;
+import com.screening.profile.model.Interview;
+import com.screening.profile.model.JobApplication;
 import com.screening.profile.repository.InterviewRepository;
 import com.screening.profile.service.PerplexityService;
 import com.screening.profile.service.candidate.CandidateService;
