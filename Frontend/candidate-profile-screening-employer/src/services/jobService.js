@@ -59,18 +59,120 @@ export const jobService = {
 
   async getJobById(jobId) {
     try {
-      // Since we don't have a backend endpoint for single job, 
-      // we'll fetch all jobs and find the one we need
-      const allJobs = await this.getAllJobs();
-      const job = allJobs.find(job => job.id === jobId);
+      const response = await apiRequest(`${API_CONFIG.BASE_URL}/jobs/${jobId}`);
+      const job = await response.json();
       
-      if (!job) {
-        throw new Error('Job not found');
-      }
-      
-      return job;
+      // Transform backend job data to match frontend expected format
+      return {
+        id: job.id,
+        title: job.title,
+        description: job.description,
+        location: job.location,
+        company: job.company || 'Societe Generale',
+        status: job.status || 'Active',
+        type: job.type || 'Full-time',
+        experience: job.experience || 'Not specified',
+        salary: job.salary || 'Competitive',
+        postedDate: job.postedDate || new Date().toISOString(),
+        applications: job.applications || 0,
+        department: job.department,
+        requirements: job.requirements || [],
+        responsibilities: job.responsibilities || [],
+        requiredSkills: job.requiredSkills || ''
+      };
     } catch (error) {
       throw handleApiError(error, 'fetching job by ID');
+    }
+  },
+
+  async createJob(jobData) {
+    try {
+      const response = await apiRequest(`${API_CONFIG.BASE_URL}/jobs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: jobData.title,
+          description: jobData.description,
+          location: jobData.location,
+          requiredSkills: jobData.requiredSkills
+        }),
+      });
+      
+      const job = await response.json();
+      
+      // Transform backend job data to match frontend expected format
+      return {
+        id: job.id,
+        title: job.title,
+        description: job.description,
+        location: job.location,
+        company: job.company || 'Societe Generale',
+        status: job.status || 'Active',
+        type: job.type || 'Full-time',
+        experience: job.experience || 'Not specified',
+        salary: job.salary || 'Competitive',
+        postedDate: job.postedDate || new Date().toISOString(),
+        applications: job.applications || 0,
+        department: job.department,
+        requirements: job.requirements || [],
+        responsibilities: job.responsibilities || [],
+        requiredSkills: job.requiredSkills || ''
+      };
+    } catch (error) {
+      throw handleApiError(error, 'creating job');
+    }
+  },
+
+  async updateJob(jobId, jobData) {
+    try {
+      const response = await apiRequest(`${API_CONFIG.BASE_URL}/jobs/${jobId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: jobData.title,
+          description: jobData.description,
+          location: jobData.location,
+          requiredSkills: jobData.requiredSkills
+        }),
+      });
+      
+      const job = await response.json();
+      
+      // Transform backend job data to match frontend expected format
+      return {
+        id: job.id,
+        title: job.title,
+        description: job.description,
+        location: job.location,
+        company: job.company || 'Societe Generale',
+        status: job.status || 'Active',
+        type: job.type || 'Full-time',
+        experience: job.experience || 'Not specified',
+        salary: job.salary || 'Competitive',
+        postedDate: job.postedDate || new Date().toISOString(),
+        applications: job.applications || 0,
+        department: job.department,
+        requirements: job.requirements || [],
+        responsibilities: job.responsibilities || [],
+        requiredSkills: job.requiredSkills || ''
+      };
+    } catch (error) {
+      throw handleApiError(error, 'updating job');
+    }
+  },
+
+  async deleteJob(jobId) {
+    try {
+      await apiRequest(`${API_CONFIG.BASE_URL}/jobs/${jobId}`, {
+        method: 'DELETE',
+      });
+      return true;
+    } catch (error) {
+      throw handleApiError(error, 'deleting job');
     }
   }
 };

@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const { user: userInfo } = await authService.login(email, password);
+      console.log('User info from login:', userInfo);
       setUser(userInfo);
       return true;
     } catch (error) {
