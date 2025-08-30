@@ -2,10 +2,12 @@ package com.screening.profile.service.job.impl;
 
 import com.screening.profile.model.Job;
 import com.screening.profile.repository.JobRepository;
+import com.screening.profile.repository.JobApplicationRepository;
 import com.screening.profile.service.job.JobService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,10 +16,12 @@ import java.util.Optional;
 @Slf4j
 public class JobServiceImpl implements JobService {
     private final JobRepository jobRepository;
+    private final JobApplicationRepository jobApplicationRepository;
 
     @Autowired
-    public JobServiceImpl(JobRepository jobRepository) {
+    public JobServiceImpl(JobRepository jobRepository, JobApplicationRepository jobApplicationRepository) {
         this.jobRepository = jobRepository;
+        this.jobApplicationRepository = jobApplicationRepository;
     }
 
     @Override
@@ -69,13 +73,19 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    @Transactional
     public void deleteJob(Integer id) {
-        Optional<Job> existingJob = jobRepository.findById(id);
-        if (existingJob.isPresent()) {
+        Optional<Job> job = jobRepository.findById(id);
+        if (job.isPresent()) {
+            // First delete all related job applications
+            log.info("Deleting all applications for job with id: {}", id);
+            jobApplicationRepository.deleteByJobId(id);
+
+            // Then delete the job
+            log.info("Deleting job with id: {}", id);
             jobRepository.deleteById(id);
-            log.info("Job deleted successfully with id: {}", id);
+            log.info("Successfully deleted job with id: {}", id);
         } else {
-            log.error("Job not found with id: {}", id);
             throw new RuntimeException("Job not found with id: " + id);
         }
     }
