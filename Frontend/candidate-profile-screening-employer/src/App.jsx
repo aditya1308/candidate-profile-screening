@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage';
 import SuperAdminPage from './pages/SuperAdminPage';
 import HRJobDetailsPage from './pages/HRJobDetailsPage';
 import InterviewerJobDetailsPage from './pages/InterviewerJobDetailsPage';
+import InterviewerDashboardPage from './pages/InterviewerDashboardPage';
 import { useAuth } from './context/useAuth';
 import './App.css';
 
@@ -19,6 +20,9 @@ const RoleBasedDashboard = () => {
   const { user } = useAuth();
   if (user?.role === 'SUPERADMIN') {
     return <SuperAdminPage />;
+  }
+  if (user?.role === 'INTERVIEWER') {
+    return <InterviewerDashboardPage />;
   }
   return <DashboardPage />;
 };

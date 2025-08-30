@@ -60,6 +60,11 @@ const Header = () => {
           <Link to="/dashboard">
             <img src={SGLogo} alt="Societe Generale" className="w-auto h-8 transition-opacity duration-200 cursor-pointer hover:opacity-80" />
           </Link>
+          {user?.role === 'INTERVIEWER' && (
+            <div className="ml-4 text-sm font-medium text-gray-600">
+              Interviewer Portal
+            </div>
+          )}
         </div>
         {user && (
           <div className="relative" ref={dropdownRef}>
