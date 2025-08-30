@@ -81,9 +81,9 @@ const ApplicantManagement = ({ jobId }) => {
     }
   }, [allCandidates, activeTab]);
 
-  const handleStatusUpdate = async (candidateId, newStatus) => {
+  const handleStatusUpdate = async (candidateId, newStatus, interviewId = null, interviewerEmail = null) => {
     try {
-      await candidateService.updateCandidateStatus(candidateId, newStatus);
+      await candidateService.updateCandidateStatus(candidateId, newStatus, interviewId, interviewerEmail);
 
       setCandidates((prev) =>
         prev.map((candidate) =>
@@ -116,10 +116,12 @@ const ApplicantManagement = ({ jobId }) => {
   };
 
   const handleInterviewerSelected = (interviewer) => {
-    // For now, we'll use the existing API call as requested
-    // Later this can be updated to include interviewer information
-    console.log('Selected interviewer:', interviewer);
-    handleStatusUpdate(selectedCandidate.id, pendingStatusUpdate);
+    // Get the interviewId from the selected candidate
+    const interviewId = selectedCandidate.interviewId;
+    const interviewerEmail = interviewer.email;
+    
+    // Call updateCandidateStatus with the new parameters
+    handleStatusUpdate(selectedCandidate.id, pendingStatusUpdate, interviewId, interviewerEmail);
     
     // Show success toast
     showToastMessage(`Interviewer ${interviewer.fullName} assigned successfully!`, 'success');
