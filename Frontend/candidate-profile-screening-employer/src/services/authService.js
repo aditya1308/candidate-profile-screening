@@ -2,14 +2,14 @@ import { storageService } from './storageService.js';
 
 export const authService = {
   /**
-   * Login with username and password
+   * Login with email and password
    * Returns JWT token on success
    */
-  async login(username, password) {
+  async login(email, password) {
     try {
-      console.log('Attempting login with username:', username);
+      console.log('Attempting login with email:', email);
       
-      const loginData = { username, password };
+      const loginData = { email, password };
       console.log('Login data being sent:', loginData);
       
       // Use direct fetch for authentication to avoid adding auth headers
@@ -44,8 +44,10 @@ export const authService = {
       const userInfo = this.decodeToken(token);
       console.log('Decoded user info:', userInfo);
       
-      // If role is not in token, try to get it from the username or set a default
-      if (!userInfo.role) {
+      // Extract role from token - backend sends role in uppercase
+      if (userInfo.role) {
+        userInfo.role = userInfo.role.toUpperCase();
+      } else {
         // This is a fallback - ideally the role should come from the JWT token
         userInfo.role = 'HR'; // Default fallback
       }
@@ -87,6 +89,66 @@ export const authService = {
       return { message: result };
     } catch (error) {
       console.error('Registration error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Onboard new user (SuperAdmin only)
+   */
+  async onboardUser(onboardData) {
+    try {
+      console.log('Attempting to onboard user with data:', onboardData);
+      
+      const response = await fetch(`http://localhost:8092/admins/onboard`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...this.getAuthHeader()
+        },
+        body: JSON.stringify(onboardData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Onboarding failed:', errorText);
+        throw new Error(errorText || 'Onboarding failed');
+      }
+      
+      const result = await response.text();
+      console.log('Onboarding result:', result);
+      return { message: result };
+    } catch (error) {
+      console.error('Onboarding error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all interviewers (SuperAdmin and HR only)
+   */
+  async getAllInterviewers() {
+    try {
+      const response = await fetch(`http://localhost:8092/admins/interviewers`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...this.getAuthHeader()
+        }
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to fetch interviewers:', errorText);
+        throw new Error(errorText || 'Failed to fetch interviewers');
+      }
+      
+      const interviewers = await response.json();
+      return interviewers;
+    } catch (error) {
+      console.error('Error fetching interviewers:', error);
       throw error;
     }
   },
@@ -157,7 +219,9 @@ export const authService = {
       const decoded = JSON.parse(jsonPayload);
       
       // Add some basic user info if not present
-      if (!decoded.name && decoded.sub) {
+      if (!decoded.name && decoded.fullName) {
+        decoded.name = decoded.fullName;
+      } else if (!decoded.name && decoded.sub) {
         decoded.name = decoded.sub;
       }
       

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import SGLogo from '../assets/SG.svg';
 import { stringUtils } from '../services/utilityService';
 import Footer from '../components/Footer';
+import { UserPlus } from 'lucide-react';
 
 const Header = () => {
   const { user, logout } = useAuth();

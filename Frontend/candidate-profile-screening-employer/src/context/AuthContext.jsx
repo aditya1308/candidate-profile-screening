@@ -28,10 +28,10 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
       setLoading(true);
-      const { user: userInfo } = await authService.login(username, password);
+      const { user: userInfo } = await authService.login(email, password);
       setUser(userInfo);
       return true;
     } catch (error) {
@@ -55,6 +55,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const onboardUser = async (onboardData) => {
+    try {
+      setLoading(true);
+      const result = await authService.onboardUser(onboardData);
+      return result;
+    } catch (error) {
+      console.error('Onboarding error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getAllInterviewers = async () => {
+    try {
+      const interviewers = await authService.getAllInterviewers();
+      return interviewers;
+    } catch (error) {
+      console.error('Error fetching interviewers:', error);
+      throw error;
+    }
+  };
+
   const logout = () => {
     authService.logout();
     setUser(null);
@@ -70,6 +93,8 @@ export const AuthProvider = ({ children }) => {
       login, 
       logout, 
       register, 
+      onboardUser,
+      getAllInterviewers,
       isAuthenticated, 
       loading 
     }}>
