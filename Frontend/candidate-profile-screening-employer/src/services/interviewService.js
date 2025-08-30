@@ -39,5 +39,31 @@ export const interviewService = {
       console.error('Error fetching completed interviews:', error);
       throw error;
     }
+  },
+
+  /**
+   * Submit feedback for an interview
+   * Uses the backend API: POST /api/v1/interview/{id}
+   */
+  async submitFeedback(interviewId, feedbackData) {
+    try {
+      const url = `${API_CONFIG.BASE_URL}/interview/${interviewId}`;
+      console.log('Submitting feedback to:', url, feedbackData);
+      
+      const response = await apiRequest(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(feedbackData)
+      });
+      
+      const data = await response.json();
+      console.log('Feedback submission response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      throw error;
+    }
   }
 };
