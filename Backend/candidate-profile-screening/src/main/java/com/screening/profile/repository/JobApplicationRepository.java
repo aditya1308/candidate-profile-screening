@@ -4,6 +4,7 @@ import com.screening.profile.model.Candidate;
 import com.screening.profile.model.Job;
 import com.screening.profile.model.JobApplication;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,4 +20,7 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     @Query("SELECT c FROM Candidate c JOIN JobApplication a ON c.id = a.candidate.id WHERE a.job.id = :jobId")
     List<Candidate> findCandidatesByJobId(@Param("jobId") Long jobId);
 
+    @Modifying
+    @Query("DELETE FROM JobApplication a WHERE a.job.id = :jobId")
+    void deleteByJobId(@Param("jobId") Integer jobId);
 }
