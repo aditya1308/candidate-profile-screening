@@ -1,6 +1,7 @@
 package com.screening.profile.controller;
 
 import com.screening.profile.dto.InterviewDTO;
+import com.screening.profile.dto.InterviewerPageResponseDTO;
 import com.screening.profile.model.Interview;
 import com.screening.profile.service.interview.InterviewService;
 import com.screening.profile.util.SetInterviewerRequest;
@@ -41,10 +42,16 @@ public class InterviewController {
         return this.interviewService.getAllInterviews();
     }
 
-    @GetMapping("/my-interviews")
-    public List<Interview> getMyInterviews() {
+    @GetMapping("/my-interviews/pending")
+    public List<InterviewerPageResponseDTO> getMyPendingInterviews() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return interviewService.getInterviewsForInterviewer(email);
+        return interviewService.findPendingInterviewsForInterviewer(email);
+    }
+
+    @GetMapping("/my-interviews/completed")
+    public List<InterviewerPageResponseDTO> getMyCompletedInterviews() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return interviewService.findCompletedInterviewsForInterviewer(email);
     }
 
     @PutMapping("/{id}/set-interviewer")

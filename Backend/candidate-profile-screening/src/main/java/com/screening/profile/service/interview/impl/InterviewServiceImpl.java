@@ -1,10 +1,8 @@
 package com.screening.profile.service.interview.impl;
 
 import com.screening.profile.dto.InterviewDTO;
-import com.screening.profile.model.Admin;
-import com.screening.profile.model.Feedback;
-import com.screening.profile.model.Interview;
-import com.screening.profile.model.JobApplication;
+import com.screening.profile.dto.InterviewerPageResponseDTO;
+import com.screening.profile.model.*;
 import com.screening.profile.repository.AdminRepository;
 import com.screening.profile.repository.InterviewRepository;
 import com.screening.profile.service.PerplexityService;
@@ -77,11 +75,6 @@ public class InterviewServiceImpl implements InterviewService {
     }
 
     @Override
-    public List<Interview> getInterviewsForInterviewer(String email) {
-        return interviewRepository.findByInterviewerEmail(email);
-    }
-
-    @Override
     public Interview setInterviewer(Integer interviewId, SetInterviewerRequest request) {
         Interview interview = interviewRepository.findById(interviewId)
                 .orElseThrow(() -> new RuntimeException("Interview not found"));
@@ -97,6 +90,58 @@ public class InterviewServiceImpl implements InterviewService {
         }
 
         return interviewRepository.save(interview);
+    }
+
+    @Override
+    public List<InterviewerPageResponseDTO> findPendingInterviewsForInterviewer(String email) {
+        List<Interview> interviews = interviewRepository.findPendingInterviewsForInterviewer(email);
+
+        return interviews.stream().map(i -> {
+            Candidate c = i.getJobApplication().getCandidate();
+            Job j = i.getJobApplication().getJob();
+
+            InterviewerPageResponseDTO.CandidateInfo candidateDto =
+                    new InterviewerPageResponseDTO.CandidateInfo(c.getId(), c.getName(), c.getEmail(), c.getPhoneNumber(), c.getDateOfBirth(), c.getFileData());
+
+            InterviewerPageResponseDTO.JobApplicationInfo jobAppDto =
+                    new InterviewerPageResponseDTO.JobApplicationInfo(i.getJobApplication().getId(), j.getTitle(), j.getLocation());
+
+            return new InterviewerPageResponseDTO(
+                    i.getId(),
+                    i.getFeedback(),
+                    candidateDto,
+                    jobAppDto,
+                    i.getRound1Details(),
+                    i.getRound2Details(),
+                    i.getRound3Details()
+            );
+        }).toList();
+    }
+
+    @Override
+    public List<InterviewerPageResponseDTO> findCompletedInterviewsForInterviewer(String email) {
+        List<Interview> interviews = interviewRepository.findCompletedInterviewsForInterviewer(email);
+
+        return interviews.stream().map(i -> {
+            Candidate c = i.getJobApplication().getCandidate();
+            Job j = i.getJobApplication().getJob();
+
+            InterviewerPageResponseDTO.CandidateInfo candidateDto =
+                    new InterviewerPageResponseDTO.CandidateInfo(c.getId(), c.getName(), c.getEmail(), c.getPhoneNumber(), c.getDateOfBirth(), c.getFileData());
+
+            InterviewerPageResponseDTO.JobApplicationInfo jobAppDto =
+                    new InterviewerPageResponseDTO.JobApplicationInfo(i.getJobApplication().getId(), j.getTitle(), j.getLocation());
+
+            return new InterviewerPageResponseDTO(
+                    i.getId(),
+                    i.getFeedback(),
+                    candidateDto,
+                    jobAppDto,
+                    i.getRound1Details(),
+                    i.getRound2Details(),
+                    i.getRound3Details()
+            );
+        }).toList();
     }
 
     private String getSummarizedFeedback(Interview interviewDetails) throws IOException, InterruptedException {
