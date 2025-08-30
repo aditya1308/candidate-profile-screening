@@ -32,8 +32,8 @@ public class JobController {
     }
 
     @GetMapping("/search")
-    public List<Job> searchJobs(@RequestParam("query") String query) {
-        return jobService.searchJobs(query);
+    public List<Job> searchJobs(@RequestParam String searchTerm) {
+        return jobService.searchJobs(searchTerm);
     }
 
     @PostMapping
@@ -42,9 +42,9 @@ public class JobController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Job> updateJob(@PathVariable Integer id, @RequestBody Job jobDetails) {
+    public ResponseEntity<Job> updateJob(@PathVariable Integer id, @RequestBody Job job) {
         try {
-            Job updatedJob = jobService.updateJob(id, jobDetails);
+            Job updatedJob = jobService.updateJob(id, job);
             return ResponseEntity.ok(updatedJob);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -52,10 +52,10 @@ public class JobController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteJob(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteJob(@PathVariable Integer id) {
         try {
             jobService.deleteJob(id);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Job and all its applications deleted successfully");
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
