@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -58,7 +59,6 @@ public class Candidate {
                 ", summary='" + summary + '\'' +
                 ", uniqueId='" + uniqueId + '\'' +
                 ", matchedSkills=" + matchedSkills +
-                ", resumeText=" + resumeText +
                 '}';
     }
     // one to many mapping of candidate to job applicatipn

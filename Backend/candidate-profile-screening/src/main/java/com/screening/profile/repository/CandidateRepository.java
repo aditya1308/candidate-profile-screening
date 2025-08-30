@@ -14,6 +14,7 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
     Optional<Candidate> findByUniqueId(String uniqueId);
 
     @Query(value = "SELECT c.*, i.feedback_summary, " +
+            "i.id," +
             "i.round1_details->>'$.feedback' AS round1_feedback, " +
             "i.round2_details->>'$.feedback' AS round2_feedback, " +
             "i.round3_details->>'$.feedback' AS round3_feedback " +

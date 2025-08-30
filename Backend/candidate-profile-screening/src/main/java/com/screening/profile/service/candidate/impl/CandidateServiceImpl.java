@@ -177,9 +177,10 @@ public class CandidateServiceImpl implements CandidateService {
                     (String) row[10],                 // summary
                     (String) row[11],                // unique_id
                     (String) row[12],                // feedback_summary
-                    (String) row[13],                // round1Feedback
-                    (String) row[14],                // round2Feedback
-                    (String) row[15]                 // round3Feedback
+                    (String) row[14],                 // round1Feedback
+                    (String) row[15],                // round2Feedback
+                    (String) row[16],                // round3Feedback
+                    row[13] != null ? ((Number)row[13]).intValue() : null             // interviewId
             );
             dtoList.add(dto);
         }

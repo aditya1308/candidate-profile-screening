@@ -29,4 +29,5 @@ public class CandidateInterviewDTO {
     private String round1Feedback;
     private String round2Feedback;
     private String round3Feedback;
+    private Integer interviewId;
 }
