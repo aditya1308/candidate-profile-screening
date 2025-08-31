@@ -17,6 +17,14 @@ const CandidateCard = ({
   getScoreColor,
   formatDate 
 }) => {
+  // Add error boundary and debugging
+  if (!candidate) {
+    console.error('CandidateCard: candidate prop is null or undefined');
+    return <div className="p-4 text-red-600">Error: Candidate data not available</div>;
+  }
+
+  console.log('CandidateCard rendering:', { candidate, isExpanded, activeTab });
+
   return (
     <div className="overflow-hidden transition-all duration-500 ease-out bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:scale-[1.02] transform-gpu">
       {/* Card Header */}
@@ -34,13 +42,13 @@ const CandidateCard = ({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <CandidateExpandedContent
-          candidate={candidate}
-          activeTab={activeTab}
-          onStatusUpdate={onStatusUpdate}
-          onShowToast={onShowToast}
-          onShowInterviewerSelection={onShowInterviewerSelection}
-        />
+                 <CandidateExpandedContent
+           candidate={candidate}
+           activeTab={activeTab}
+           onStatusUpdate={onStatusUpdate}
+           onShowToast={onShowToast}
+           onShowInterviewerSelection={onShowInterviewerSelection}
+         />
       )}
     </div>
   );

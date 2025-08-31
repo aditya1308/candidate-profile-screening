@@ -40,7 +40,16 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Special handling for phone number formatting
+    if (name === 'phone') {
+      // Remove all non-digit characters except +, -, (, ), and spaces
+      const cleaned = value.replace(/[^\d\s\-\(\)\+]/g, '');
+      setFormData(prev => ({ ...prev, [name]: cleaned }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+    
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
     // Clear submit error when user starts typing
     if (errors.submit) setErrors(prev => ({ ...prev, submit: '' }));
@@ -92,7 +101,19 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
       }
     }
     
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else {
+      // Remove all non-digit characters for validation
+      const phoneDigits = formData.phone.replace(/\D/g, '');
+      
+      // Check if it's a valid phone number (10-15 digits)
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+        newErrors.phone = 'Phone number must be between 10-15 digits';
+      } else if (!/^[+]?[\d\s\-\(\)]+$/.test(formData.phone.trim())) {
+        newErrors.phone = 'Please enter a valid phone number format';
+      }
+    }
     if (!formData.resume) newErrors.resume = 'Resume is required';
     
     setErrors(newErrors);
@@ -158,7 +179,7 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                     <h1 className="mb-2 text-2xl font-bold text-gray-900 line-clamp-2">{job.title}</h1>
                     <p className="mb-3 text-lg text-gray-600">Société Générale</p>
                   </div>
-                  <div className="px-3 py-1 text-sm font-medium border rounded-full bg-sg-red/10 text-sg-red border-sg-red/20 ml-4 flex-shrink-0">Active</div>
+                  <div className="px-3 py-1 text-sm font-medium border rounded-full bg-green-500/10 text-green-600 border-green-500/20 ml-4 flex-shrink-0">Active</div>
                 </div>
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center space-x-2">
@@ -192,12 +213,12 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                   </h3>
                   {job.requiredSkills ? (
                     <div className="flex flex-wrap gap-2">
-                      {job.requiredSkills.split(',').map((skill, index) => (
+                      {job.requiredSkills.split(/[\n,]+/).map(skill => skill.trim()).filter(skill => skill.length > 0).map((skill, index) => (
                         <span
                           key={index}
                           className="px-3 py-1 text-xs font-medium border rounded-full text-sg-red bg-sg-red/10 border-sg-red/20"
                         >
-                          {skill.trim()}
+                          {skill}
                         </span>
                       ))}
                     </div>
@@ -284,23 +305,25 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                       )}
                     </div>
                     
-                    <div>
-                      <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-700">Phone Number *</label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sg-red focus:border-transparent"
-                        placeholder="Enter your phone number"
-                      />
-                      {errors.phone && (
-                        <p className="mt-1 text-sm text-red-500">
-                          <AlertCircle className="w-4 h-4 mr-1 inline-block" /> {errors.phone}
-                        </p>
-                      )}
-                    </div>
+                                         <div>
+                       <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-700">Phone Number *</label>
+                                               <input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sg-red focus:border-transparent"
+                          placeholder="Enter your phone number"
+                          pattern="[+]?[\d\s\-\(\)]+"
+                          maxLength="20"
+                        />
+                        {errors.phone && (
+                          <p className="mt-1 text-sm text-red-500">
+                            <AlertCircle className="w-4 h-4 mr-1 inline-block" /> {errors.phone}
+                          </p>
+                        )}
+                     </div>
                   </div>
                   
                   {/* Resume Upload */}

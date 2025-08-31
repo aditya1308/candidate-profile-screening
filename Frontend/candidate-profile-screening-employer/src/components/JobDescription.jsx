@@ -7,9 +7,8 @@ const JobDescription = ({ job }) => {
             <h1 className="mb-2 text-2xl font-bold text-gray-900">{job.title}</h1>
             <p className="mb-3 text-lg text-gray-600">{job.company || 'Societe Generale'}</p>
           </div>
-          <div className="px-3 py-1 text-sm font-medium border rounded-full bg-sg-red/10 text-sg-red border-sg-red/20">
-            {job.status || 'Active'}
-          </div>
+          <div className="px-3 py-1 text-sm font-medium border rounded-full bg-green-500/10 text-green-600 border-green-500/20 ml-4 flex-shrink-0"> {job.status || 'Active'}</div>
+          
         </div>
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="flex items-center space-x-2">
@@ -24,12 +23,12 @@ const JobDescription = ({ job }) => {
           <div className="mb-6">
             <h3 className="mb-3 text-sm font-medium text-gray-900">Required Skills</h3>
             <div className="flex flex-wrap gap-2">
-              {job.requiredSkills.split(',').map((skill, index) => (
+              {job.requiredSkills.split(/[\n,]+/).map(skill => skill.trim()).filter(skill => skill.length > 0).map((skill, index) => (
                 <span
                   key={index}
                   className="px-3 py-1 text-xs font-medium border rounded-full text-sg-red bg-sg-red/10 border-sg-red/20"
                 >
-                  {skill.trim()}
+                  {skill}
                 </span>
               ))}
             </div>

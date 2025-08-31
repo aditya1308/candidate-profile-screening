@@ -9,6 +9,17 @@ const CandidateExpandedContent = ({
   onShowToast,
   onShowInterviewerSelection
 }) => {
+  // Add error boundary and debugging
+  if (!candidate) {
+    console.error('CandidateExpandedContent: candidate prop is null or undefined');
+    return <div className="p-4 text-red-600">Error: Candidate data not available</div>;
+  }
+
+  console.log('CandidateExpandedContent rendering:', { 
+    candidate, 
+    activeTab
+  });
+
   const getCommentsContent = () => {
     switch (activeTab) {
       case "onhold":
@@ -36,7 +47,7 @@ const CandidateExpandedContent = ({
             Summary
           </h4>
           <p className="p-4 text-sm font-bold leading-relaxed text-gray-800 transition-shadow duration-300 bg-white border rounded shadow-sm hover:shadow-md">
-            {candidate.summary || "No summary available"}
+            {candidate.summary || candidate.resumeText || "No summary available"}
           </p>
         </div>
 
@@ -47,7 +58,7 @@ const CandidateExpandedContent = ({
               <FileText className="w-5 h-5 mr-2 hover:animate-float" />
               Comments
             </h4>
-            <div className="p-4 text-sm leading-relaxed text-gray-800 transition-shadow duration-300 bg-white border rounded shadow-sm hover:shadow-md">
+            <div className="p-4 text-sm font-bold leading-relaxed text-gray-800 transition-shadow duration-300 bg-white border rounded shadow-sm hover:shadow-md">
               {getCommentsContent()}
             </div>
           </div>
@@ -79,7 +90,8 @@ const CandidateExpandedContent = ({
         <ActionButtons 
           activeTab={activeTab} 
           candidateId={candidate.id} 
-          candidateName={candidate.fullName}
+          candidateName={candidate.fullName || candidate.name || 'Unknown Candidate'}
+          candidateEmail={candidate.email || ''}
           onStatusUpdate={onStatusUpdate}
           onShowToast={onShowToast}
           onShowInterviewerSelection={onShowInterviewerSelection}
