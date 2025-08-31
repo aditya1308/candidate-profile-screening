@@ -6,8 +6,27 @@ A project for **automating the evaluation of job candidate profiles** using Java
 
 ## 🗂️ Overview
 
-**Candidate Profile Screening** helps recruiters and HR professionals quickly screen and rank applicants.  
-It leverages **Java 22, Spring Boot, MySQL, and AI-powered APIs** for smart candidate evaluation.
+### 🚀 AI-Powered Candidate Profile Screening & Feedback Tracking
+
+Traditional hiring processes face multiple bottlenecks that reduce efficiency and increase workload for the TA (Talent Acquisition) team:
+
+Profile Screening → Limited resources often lead to ineffective resume screening and repeated evaluation of the same candidate across multiple roles.
+
+Candidate Tracking → Difficulty in maintaining structured feedback across different interview rounds and discussions.
+
+Resource Constraints → Scarcity of TA resources impacts hiring efficiency and turnaround time.
+
+Duplicate Management → High risk of the same candidate being screened multiple times for different positions.
+
+👉 To solve these challenges, this project introduces an AI-driven Recruitment Automation Platform with the following core features:
+
+🤖 AI-powered Resume Screening – Matches resumes against Job Descriptions (JDs), flags duplicates, and provides similarity scoring.
+
+🗂 Centralized Feedback Tracking – Logs, stores, and analyzes structured feedback from different interview rounds.
+
+⚡ Automated Feedback Collection – Uses AI tools to streamline initial screening and capture interviewer evaluations.
+
+📊 Candidate Status & History Database – Maintains candidate lifecycle data to prevent re-screening and ensure consistent tracking.
 
 ---
 
