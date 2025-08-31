@@ -2,7 +2,20 @@ import React, { useState } from 'react';
 import { Check, X } from 'lucide-react';
 import Button3D from './Button3D';
 
-const ActionButtons = ({ activeTab, candidateId, candidateName, onStatusUpdate, onShowToast, onShowInterviewerSelection }) => {
+const ActionButtons = ({ 
+  activeTab, 
+  candidateId, 
+  candidateName, 
+  candidateEmail,
+  onStatusUpdate, 
+  onShowToast, 
+  onShowInterviewerSelection
+}) => {
+  console.log('ActionButtons props:', { 
+    activeTab, 
+    candidateId, 
+    candidateName
+  });
   const handleStatusUpdateWithInterviewer = (newStatus) => {
     if (onShowInterviewerSelection) {
       onShowInterviewerSelection(newStatus);

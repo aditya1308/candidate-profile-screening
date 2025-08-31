@@ -49,6 +49,7 @@ const InterviewerSelectionScreen = ({
   }, [searchQuery, interviewers]);
 
   const handleInterviewerClick = (interviewer) => {
+    console.log('Interviewer clicked:', interviewer);
     onConfirm(interviewer);
   };
 
@@ -112,26 +113,32 @@ const InterviewerSelectionScreen = ({
             </div>
           </div>
         ) : (
-                     <div className="p-3">
-             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+                     <div className="p-4">
+             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                {filteredInterviewers.map((interviewer) => (
-                 <div key={interviewer.id} className="relative group">
-                                       {/* Shadow layer - positioned to the right and bottom with thick black shadow */}
-                    <div 
-                      className="absolute top-0 left-0 w-full h-full transition-all duration-200 bg-black group-hover:opacity-0"
-                      style={{ transform: 'translate(4px, 4px)' }}
-                    />
-                    
-                    {/* Card layer */}
-                                         <div
-                       onClick={() => handleInterviewerClick(interviewer)}
-                       className="relative p-3 text-gray-900 transition-all duration-200 transform bg-white border-4 border-red-500 cursor-pointer group-hover:translate-x-1 group-hover:translate-y-1 hover:shadow-xl"
-                     >
-                                               <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium">{interviewer.fullName}</span>
-                          <span className="text-xs text-gray-600">{interviewer.email}</span>
-                        </div>
+                 <div key={interviewer.id} className="group">
+                   <div
+                     onClick={() => handleInterviewerClick(interviewer)}
+                     className="relative flex flex-col items-center p-4 transition-all duration-300 transform bg-white border-2 border-gray-200 rounded-2xl cursor-pointer hover:border-sg-red hover:shadow-lg hover:shadow-sg-red/20 hover:-translate-y-1 group-hover:scale-105"
+                   >
+                     {/* Avatar Circle */}
+                     <div className="flex items-center justify-center w-12 h-12 mb-3 text-lg font-semibold text-white transition-all duration-300 bg-gradient-to-br from-sg-red to-red-600 rounded-full group-hover:scale-110 group-hover:shadow-lg">
+                       {interviewer.fullName.charAt(0).toUpperCase()}
                      </div>
+                     
+                     {/* Interviewer Info */}
+                     <div className="text-center">
+                       <h4 className="mb-1 text-sm font-semibold text-gray-900 truncate">
+                         {interviewer.fullName}
+                       </h4>
+                       <p className="text-xs text-gray-500 truncate max-w-[120px]">
+                         {interviewer.email}
+                       </p>
+                     </div>
+                     
+                     {/* Selection Indicator */}
+                     <div className="absolute top-2 right-2 w-3 h-3 transition-all duration-300 bg-gray-300 rounded-full group-hover:bg-sg-red group-hover:scale-125"></div>
+                   </div>
                  </div>
                ))}
              </div>

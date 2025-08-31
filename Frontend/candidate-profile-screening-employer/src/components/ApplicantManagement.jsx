@@ -1,12 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { candidateService } from "../services/candidateService";
+import { interviewerService } from "../services/interviewerService";
 import TabNavigation from "./TabNavigation";
 import CandidateCard from "./CandidateCard";
 import InterviewerSelectionScreen from "./InterviewerSelectionModal";
+import EmailSchedulingModal from "./EmailSchedulingModal";
+
 import LoadingSpinner from "./LoadingSpinner";
 import EmptyState from "./EmptyState";
 import ToastNotification from "./ToastNotification";
 import ResumeModal from "./ResumeModal";
+import ErrorBoundary from "./ErrorBoundary";
 import useToast from "../hooks/useToast";
 import { 
   filterCandidatesByTab, 
@@ -32,6 +36,11 @@ const ApplicantManagement = ({ jobId }) => {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null);
   
+  // Email scheduling state
+  const [showEmailScheduling, setShowEmailScheduling] = useState(false);
+  const [emailCandidate, setEmailCandidate] = useState(null);
+  const [emailRound, setEmailRound] = useState(null);
+  
   const { showToast, toastMessage, toastType, showToastMessage } = useToast();
 
   const fetchCandidates = useCallback(async () => {
@@ -40,6 +49,7 @@ const ApplicantManagement = ({ jobId }) => {
       setError(null);
 
       const allCandidatesData = await candidateService.getCandidatesByJobId(jobId);
+      console.log('Fetched candidates data:', allCandidatesData);
 
       if (!allCandidatesData || allCandidatesData.length === 0) {
         setAllCandidates([]);
@@ -47,7 +57,44 @@ const ApplicantManagement = ({ jobId }) => {
         return;
       }
 
-      setAllCandidates(allCandidatesData);
+      // Ensure all candidates have required properties
+      const normalizedCandidates = allCandidatesData.map(candidate => ({
+        id: candidate.id,
+        name: candidate.name || 'Unknown',
+        fullName: candidate.fullName || candidate.name || 'Unknown',
+        email: candidate.email || '',
+        phoneNumber: candidate.phoneNumber || candidate.phone || '',
+        status: candidate.status || 'IN_PROCESS',
+        summary: candidate.summary || '',
+        matchedSkills: candidate.matchedSkills || [],
+        score: candidate.score || 0,
+        uniqueId: candidate.uniqueId || '',
+        resumeText: candidate.resumeText || '',
+        fileData: candidate.fileData || null,
+        dateOfBirth: candidate.dateOfBirth || candidate.dob || '',
+        appliedDate: candidate.appliedDate || candidate.applicationDate || new Date().toISOString(),
+        feedbackSummary: candidate.feedbackSummary || '',
+        round1Feedback: candidate.round1Feedback || '',
+        round2Feedback: candidate.round2Feedback || '',
+        round3Feedback: candidate.round3Feedback || '',
+        interviewId: candidate.interviewId || null,
+        ...candidate // Keep any other properties
+      }));
+
+      console.log('Normalized candidates:', normalizedCandidates);
+      
+      // Check for duplicates
+      const candidateIds = normalizedCandidates.map(c => c.id);
+      const uniqueIds = [...new Set(candidateIds)];
+      if (candidateIds.length !== uniqueIds.length) {
+        console.warn('Duplicate candidates detected!', {
+          total: candidateIds.length,
+          unique: uniqueIds.length,
+          duplicates: candidateIds.filter((id, index) => candidateIds.indexOf(id) !== index)
+        });
+      }
+      
+      setAllCandidates(normalizedCandidates);
     } catch (err) {
       if (
         err.message &&
@@ -83,6 +130,7 @@ const ApplicantManagement = ({ jobId }) => {
 
   const handleStatusUpdate = async (candidateId, newStatus, interviewId = null, interviewerEmail = null) => {
     try {
+      console.log('handleStatusUpdate called with:', { candidateId, newStatus, interviewId, interviewerEmail });
       await candidateService.updateCandidateStatus(candidateId, newStatus, interviewId, interviewerEmail);
 
       setCandidates((prev) =>
@@ -100,6 +148,7 @@ const ApplicantManagement = ({ jobId }) => {
             : candidate
         )
       );
+      console.log('Status update completed successfully');
     } catch (err) {
       console.error("Error updating candidate status:", err);
       alert(`Failed to update candidate status: ${err.message}`);
@@ -115,21 +164,39 @@ const ApplicantManagement = ({ jobId }) => {
     }
   };
 
-  const handleInterviewerSelected = (interviewer) => {
-    // Get the interviewId from the selected candidate
-    const interviewId = selectedCandidate.interviewId;
-    const interviewerEmail = interviewer.email;
-    
-    // Call updateCandidateStatus with the new parameters
-    handleStatusUpdate(selectedCandidate.id, pendingStatusUpdate, interviewId, interviewerEmail);
-    
-    // Show success toast
-    showToastMessage(`Interviewer ${interviewer.fullName} assigned successfully!`, 'success');
-    
-    // Go back to candidate view
-    setShowInterviewerSelection(false);
-    setSelectedCandidate(null);
-    setPendingStatusUpdate(null);
+  const handleInterviewerSelected = async (interviewer) => {
+    try {
+      console.log('handleInterviewerSelected called with:', { interviewer, activeTab, selectedCandidate });
+      
+      // Get the interviewId from the selected candidate
+      const interviewId = selectedCandidate.interviewId;
+      const interviewerEmail = interviewer.email;
+      
+      // Call updateCandidateStatus with the new parameters
+      await handleStatusUpdate(selectedCandidate.id, pendingStatusUpdate, interviewId, interviewerEmail);
+      
+      // Show success toast for interviewer assignment
+      showToastMessage(`Interviewer ${interviewer.fullName} assigned successfully!`, 'success');
+      
+      // Show email scheduling modal for Round 1, Round 2, and Round 3
+      if (activeTab === 'applied' || activeTab === 'round1' || activeTab === 'round2') {
+        console.log('Setting up email modal for:', { activeTab, selectedCandidate });
+        setEmailCandidate(selectedCandidate);
+        setEmailRound(activeTab === 'applied' ? 1 : activeTab === 'round1' ? 2 : 3);
+        setShowEmailScheduling(true);
+        console.log('Email modal should now be visible');
+      } else {
+        console.log('Not showing email modal for tab:', activeTab);
+      }
+      
+      // Go back to candidate view
+      setShowInterviewerSelection(false);
+      setSelectedCandidate(null);
+      setPendingStatusUpdate(null);
+    } catch (error) {
+      console.error('Error in handleInterviewerSelected:', error);
+      showToastMessage(`Error: ${error.message}`, 'error');
+    }
   };
 
   const handleBackToCandidate = () => {
@@ -137,6 +204,43 @@ const ApplicantManagement = ({ jobId }) => {
     setSelectedCandidate(null);
     setPendingStatusUpdate(null);
   };
+
+  const handleSendInterviewEmail = async (subject, body) => {
+    try {
+      console.log('handleSendInterviewEmail called with:', { subject, body, emailCandidate });
+      
+      const result = await interviewerService.sendInterviewEmail(
+        emailCandidate.email,
+        subject,
+        body
+      );
+      
+      console.log('Email service returned:', result);
+      showToastMessage('Interview email sent successfully!', 'success');
+      
+      // Show interview scheduled popup after email is sent
+      setTimeout(() => {
+        showToastMessage(`Interview for Round ${emailRound} has been scheduled successfully!`, 'success');
+      }, 1000);
+      
+      setShowEmailScheduling(false);
+      setEmailCandidate(null);
+      setEmailRound(null);
+    } catch (error) {
+      console.error('Error sending interview email:', error);
+      showToastMessage(`Failed to send email: ${error.message}`, 'error');
+    }
+  };
+
+  const handleCloseEmailScheduling = () => {
+    setShowEmailScheduling(false);
+    setEmailCandidate(null);
+    setEmailRound(null);
+  };
+
+
+
+
 
   const getNextRound = (currentRound) => {
     switch (currentRound) {
@@ -245,7 +349,29 @@ const ApplicantManagement = ({ jobId }) => {
   };
 
   const renderCandidateCard = (candidate) => {
+    console.log('renderCandidateCard called with:', candidate);
+    
+    if (!candidate) {
+      console.error('renderCandidateCard: candidate is null or undefined');
+      return (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600">Error: Candidate data is missing</p>
+        </div>
+      );
+    }
+
+    if (!candidate.id) {
+      console.error('renderCandidateCard: candidate.id is missing');
+      return (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600">Error: Candidate ID is missing</p>
+          <pre className="text-xs mt-2">{JSON.stringify(candidate, null, 2)}</pre>
+        </div>
+      );
+    }
+
     const isExpanded = expandedCards.has(candidate.id);
+    console.log('isExpanded:', isExpanded, 'candidate.id:', candidate.id);
 
     return (
       <CandidateCard
@@ -260,7 +386,7 @@ const ApplicantManagement = ({ jobId }) => {
         onOpenEmail={handleOpenEmail}
         onStatusUpdate={handleStatusUpdate}
         onShowToast={showToastMessage}
-        onShowInterviewerSelection={(newStatus) => handleShowInterviewerSelection(candidate, newStatus)}
+                 onShowInterviewerSelection={(newStatus) => handleShowInterviewerSelection(candidate, newStatus)}
         getScoreColor={getScoreColor}
         formatDate={formatDate}
       />
@@ -377,16 +503,17 @@ const ApplicantManagement = ({ jobId }) => {
         }
       `}</style>
       
-      <div className="space-y-6">
-        {/* Enhanced Navigation Tabs */}
-        <TabNavigation 
-          tabs={tabs} 
-          activeTab={activeTab} 
-          onTabSwitch={handleTabSwitch} 
-        />
+             <div className="space-y-6">
+         {/* Enhanced Navigation Tabs */}
+         <TabNavigation 
+           tabs={tabs} 
+           activeTab={activeTab} 
+           onTabSwitch={handleTabSwitch} 
+         />
 
         {/* Candidate Cards Grid or Interviewer Selection Screen */}
         <div className="space-y-3">
+          {console.log('Rendering candidates:', candidates.length, candidates)}
           {showInterviewerSelection && selectedCandidate && ['applied', 'round1', 'round2'].includes(activeTab) ? (
             <InterviewerSelectionScreen
               candidate={selectedCandidate}
@@ -398,7 +525,11 @@ const ApplicantManagement = ({ jobId }) => {
           ) : candidates.length === 0 ? (
             <EmptyState activeTabLabel={activeTabLabel} />
           ) : (
-            candidates.map(renderCandidateCard)
+            candidates.map((candidate, index) => (
+              <ErrorBoundary key={`${candidate.id}-${index}`}>
+                {renderCandidateCard(candidate)}
+              </ErrorBoundary>
+            ))
           )}
         </div>
 
@@ -409,13 +540,25 @@ const ApplicantManagement = ({ jobId }) => {
           type={toastType} 
         />
 
-        {/* Resume Preview Modal */}
-        <ResumeModal 
-          show={showResumeModal} 
-          resume={selectedResume} 
-          onClose={closeResumeModal} 
-        />
-      </div>
+                 {/* Resume Preview Modal */}
+         <ResumeModal 
+           show={showResumeModal} 
+           resume={selectedResume} 
+           onClose={closeResumeModal} 
+         />
+
+         {/* Email Scheduling Modal */}
+         {console.log('Email modal state:', { showEmailScheduling, emailCandidate, emailRound })}
+         <EmailSchedulingModal
+           show={showEmailScheduling}
+           onClose={handleCloseEmailScheduling}
+           onSend={handleSendInterviewEmail}
+           candidateName={emailCandidate?.name || ''}
+           candidateEmail={emailCandidate?.email || ''}
+           round={emailRound}
+         />
+         
+       </div>
     </>
   );
 };
