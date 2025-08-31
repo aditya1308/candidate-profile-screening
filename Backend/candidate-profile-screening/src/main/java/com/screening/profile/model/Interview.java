@@ -18,15 +18,15 @@ public class Interview {
     private Integer id;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "round1_details", columnDefinition = "json")
+    @Column(name = "round1_details", columnDefinition = "json", nullable = true)
     private Feedback round1Details;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "round2_details", columnDefinition = "json")
+    @Column(name = "round2_details", columnDefinition = "json", nullable = true)
     private Feedback round2Details;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "round3_details", columnDefinition = "json")
+    @Column(name = "round3_details", columnDefinition = "json", nullable = true)
     private Feedback round3Details;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -49,4 +49,13 @@ public class Interview {
     @JoinColumn(name = "job_application_id", referencedColumnName = "id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_interview_job+application_id"))
     private JobApplication jobApplication;
+
+    @Column(name = "round1_done", nullable = false)
+    private boolean round1Done;
+
+    @Column(name = "round2_done", nullable = false)
+    private boolean round2Done;
+
+    @Column(name = "round3_done", nullable = false)
+    private boolean round3Done;
 }

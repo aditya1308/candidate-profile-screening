@@ -13,27 +13,22 @@ import java.util.List;
 public interface InterviewRepository extends JpaRepository<Interview, Integer> {
     Optional<Interview> findByJobApplicationId(Long jobAppId);
 
-    @Query(value = """
-        SELECT i.*
-        FROM interview i
-        JOIN admin a ON (
-            i.round1_interviewer_id = a.id
-            OR i.round2_interviewer_id = a.id
-            OR i.round3_interviewer_id = a.id
-        )
-        WHERE a.email = :email
-          AND (
-              i.round1_details IS NULL
-              OR i.round2_details IS NULL
-              OR i.round3_details IS NULL
-          )
-    """, nativeQuery = true)
-    List<Interview> findPendingInterviewsForInterviewer(@Param("email") String email);
+    @Query("SELECT DISTINCT i FROM Interview i " +
+            "JOIN FETCH i.jobApplication ja " +
+            "JOIN FETCH ja.job j " +
+            "JOIN FETCH ja.candidate c " +
+            "WHERE (i.round1Interviewer.id = :adminId AND i.round1Done = false) " +
+            "   OR (i.round2Interviewer.id = :adminId AND i.round2Done = false) " +
+            "   OR (i.round3Interviewer.id = :adminId AND i.round3Done = false)")
+    List<Interview> findPendingInterviewsByAdminId(@Param("adminId") Long adminId);
 
-    @Query("SELECT i FROM Interview i " +
-            "WHERE (i.round1Interviewer.email = :email AND i.round1Details IS NOT NULL) " +
-            "   OR (i.round2Interviewer.email = :email AND i.round2Details IS NOT NULL) " +
-            "   OR (i.round3Interviewer.email = :email AND i.round3Details IS NOT NULL)")
-    List<Interview> findCompletedInterviewsForInterviewer(@Param("email") String email);
+    @Query("SELECT DISTINCT i FROM Interview i " +
+            "JOIN FETCH i.jobApplication ja " +
+            "JOIN FETCH ja.job j " +
+            "JOIN FETCH ja.candidate c " +
+            "WHERE (i.round1Interviewer.id = :adminId AND i.round1Done = true) " +
+            "   OR (i.round2Interviewer.id = :adminId AND i.round2Done = true) " +
+            "   OR (i.round3Interviewer.id = :adminId AND i.round3Done = true)")
+    List<Interview> findCompletedInterviewsByAdminId(@Param("adminId") Long adminId);
 
 }

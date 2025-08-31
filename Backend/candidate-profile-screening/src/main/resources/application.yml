@@ -17,7 +17,7 @@ spring:
     #change as per your system
     url: jdbc:mysql://localhost:3306/candidate
     username: root
-    password: Aditya@123
+    password:
     driver-class-name: com.mysql.cj.jdbc.Driver
     initialization-mode: always
   sql:
@@ -36,7 +36,7 @@ spring:
             enable: true
 perplexity:
   api:
-    key: #add the api key
+    key:
   base-url : https://api.perplexity.ai/chat/completions
 jwt:
   secret: myssdesfefcfsfecrhjfgwjfirehifjolfkpfwdwsfghwewqfwqghpldgdsczvbnesecrfsfwsfwswetkey
