@@ -8,10 +8,31 @@ import { jobService } from '../services/jobService';
 
 const HRJobDetailsPage = () => {
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState('description');
+  
+  // Load initial activeTab from localStorage or use default
+  const getInitialActiveTab = () => {
+    try {
+      const savedTab = localStorage.getItem(`hrJobDetails_activeTab_${id}`);
+      return savedTab || 'description';
+    } catch (error) {
+      console.warn('Error loading saved tab state:', error);
+      return 'description';
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialActiveTab);
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Function to save active tab to localStorage
+  const saveActiveTab = (tab) => {
+    try {
+      localStorage.setItem(`hrJobDetails_activeTab_${id}`, tab);
+    } catch (error) {
+      console.warn('Error saving tab state to localStorage:', error);
+    }
+  };
 
   const fetchJob = useCallback(async () => {
     try {
@@ -95,7 +116,10 @@ const HRJobDetailsPage = () => {
             
             <nav className="relative flex w-full">
               <button
-                onClick={() => setActiveTab('description')}
+                onClick={() => {
+                  setActiveTab('description');
+                  saveActiveTab('description');
+                }}
                 className={`${
                   activeTab === 'description'
                     ? 'text-white'
@@ -108,7 +132,10 @@ const HRJobDetailsPage = () => {
                 <span className="transition-all duration-300">Job Description</span>
               </button>
               <button
-                onClick={() => setActiveTab('applicants')}
+                onClick={() => {
+                  setActiveTab('applicants');
+                  saveActiveTab('applicants');
+                }}
                 className={`${
                   activeTab === 'applicants'
                     ? 'text-white'

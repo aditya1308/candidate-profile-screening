@@ -22,14 +22,40 @@ import {
 } from "../utils/candidateUtils";
 
 const ApplicantManagement = ({ jobId }) => {
-  const [activeTab, setActiveTab] = useState("applied");
+  // Load initial state from localStorage or use defaults
+  const getInitialState = () => {
+    try {
+      const savedState = localStorage.getItem(`applicantManagement_${jobId}`);
+      console.log('Loading saved state for jobId:', jobId, 'savedState:', savedState);
+      
+      if (savedState) {
+        const parsed = JSON.parse(savedState);
+        console.log('Parsed saved state:', parsed);
+        return {
+          activeTab: parsed.activeTab || "applied",
+          expandedCards: new Set(parsed.expandedCards || [])
+        };
+      }
+    } catch (error) {
+      console.warn('Error loading saved state:', error);
+    }
+    
+    console.log('Using default state for jobId:', jobId);
+    return {
+      activeTab: "applied",
+      expandedCards: new Set()
+    };
+  };
+
+  const initialState = getInitialState();
+  const [activeTab, setActiveTab] = useState(initialState.activeTab);
   const [candidates, setCandidates] = useState([]);
   const [allCandidates, setAllCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedResume, setSelectedResume] = useState(null);
   const [showResumeModal, setShowResumeModal] = useState(false);
-  const [expandedCards, setExpandedCards] = useState(new Set());
+  const [expandedCards, setExpandedCards] = useState(initialState.expandedCards);
   
   // Interviewer selection state
   const [showInterviewerSelection, setShowInterviewerSelection] = useState(false);
@@ -42,6 +68,20 @@ const ApplicantManagement = ({ jobId }) => {
   const [emailRound, setEmailRound] = useState(null);
   
   const { showToast, toastMessage, toastType, showToastMessage } = useToast();
+
+  // Function to save state to localStorage
+  const saveStateToStorage = (newActiveTab, newExpandedCards) => {
+    try {
+      const stateToSave = {
+        activeTab: newActiveTab,
+        expandedCards: Array.from(newExpandedCards)
+      };
+      console.log('Saving state to localStorage for jobId:', jobId, 'state:', stateToSave);
+      localStorage.setItem(`applicantManagement_${jobId}`, JSON.stringify(stateToSave));
+    } catch (error) {
+      console.warn('Error saving state to localStorage:', error);
+    }
+  };
 
   const fetchCandidates = useCallback(async () => {
     try {
@@ -121,6 +161,20 @@ const ApplicantManagement = ({ jobId }) => {
     fetchCandidates();
   }, [fetchCandidates]);
 
+  // Save state when jobId changes (but don't clear on unmount)
+  useEffect(() => {
+    // Only clear if jobId actually changes, not on component unmount
+    const prevJobId = localStorage.getItem('currentJobId');
+    if (prevJobId && prevJobId !== jobId.toString()) {
+      try {
+        localStorage.removeItem(`applicantManagement_${prevJobId}`);
+      } catch (error) {
+        console.warn('Error clearing previous job state:', error);
+      }
+    }
+    localStorage.setItem('currentJobId', jobId.toString());
+  }, [jobId]);
+
   useEffect(() => {
     if (allCandidates.length > 0) {
       const filteredCandidates = filterCandidatesByTab(allCandidates, activeTab);
@@ -168,30 +222,38 @@ const ApplicantManagement = ({ jobId }) => {
     try {
       console.log('handleInterviewerSelected called with:', { interviewer, activeTab, selectedCandidate });
       
-      // Get the interviewId from the selected candidate
-      const interviewId = selectedCandidate.interviewId;
-      const interviewerEmail = interviewer.email;
-      
-      // Call updateCandidateStatus with the new parameters
-      await handleStatusUpdate(selectedCandidate.id, pendingStatusUpdate, interviewId, interviewerEmail);
-      
-      // Show success toast for interviewer assignment
-      showToastMessage(`Interviewer ${interviewer.fullName} assigned successfully!`, 'success');
+      // Store interviewer info for later use after email is sent
+      const interviewerInfo = {
+        interviewer,
+        candidateId: selectedCandidate.id,
+        newStatus: pendingStatusUpdate,
+        interviewId: selectedCandidate.interviewId,
+        interviewerEmail: interviewer.email
+      };
       
       // Show email scheduling modal for Round 1, Round 2, and Round 3
       if (activeTab === 'applied' || activeTab === 'round1' || activeTab === 'round2') {
         console.log('Setting up email modal for:', { activeTab, selectedCandidate });
-        setEmailCandidate(selectedCandidate);
+        
+        // Store interviewer info in the email candidate state
+        const candidateWithInterviewerInfo = {
+          ...selectedCandidate,
+          pendingInterviewerInfo: interviewerInfo
+        };
+        
+        setEmailCandidate(candidateWithInterviewerInfo);
         setEmailRound(activeTab === 'applied' ? 1 : activeTab === 'round1' ? 2 : 3);
         setShowEmailScheduling(true);
-        console.log('Email modal should now be visible');
+        
+        console.log('Email modal should now be visible with interviewer info:', interviewerInfo);
       } else {
-        console.log('Not showing email modal for tab:', activeTab);
+        // For other tabs, proceed with status update immediately
+        await handleStatusUpdate(selectedCandidate.id, pendingStatusUpdate, selectedCandidate.interviewId, interviewer.email);
+        showToastMessage(`Interviewer ${interviewer.fullName} assigned successfully!`, 'success');
       }
       
       // Go back to candidate view
       setShowInterviewerSelection(false);
-      setSelectedCandidate(null);
       setPendingStatusUpdate(null);
     } catch (error) {
       console.error('Error in handleInterviewerSelected:', error);
@@ -208,7 +270,9 @@ const ApplicantManagement = ({ jobId }) => {
   const handleSendInterviewEmail = async (subject, body) => {
     try {
       console.log('handleSendInterviewEmail called with:', { subject, body, emailCandidate });
+      console.log('emailCandidate.pendingInterviewerInfo:', emailCandidate?.pendingInterviewerInfo);
       
+      // First, send the email
       const result = await interviewerService.sendInterviewEmail(
         emailCandidate.email,
         subject,
@@ -218,14 +282,31 @@ const ApplicantManagement = ({ jobId }) => {
       console.log('Email service returned:', result);
       showToastMessage('Interview email sent successfully!', 'success');
       
-      // Show interview scheduled popup after email is sent
-      setTimeout(() => {
-        showToastMessage(`Interview for Round ${emailRound} has been scheduled successfully!`, 'success');
-      }, 1000);
+      // After successful email sending, move candidate to next round
+      if (emailCandidate.pendingInterviewerInfo) {
+        const { interviewer, candidateId, newStatus, interviewId, interviewerEmail } = emailCandidate.pendingInterviewerInfo;
+        
+        console.log('Moving candidate to next round after email sent:', { candidateId, newStatus, interviewer });
+        
+        // Update candidate status to move to next round
+        await handleStatusUpdate(candidateId, newStatus, interviewId, interviewerEmail);
+        
+        // Show success message for interviewer assignment
+        showToastMessage(`Interviewer ${interviewer.fullName} assigned successfully!`, 'success');
+        
+        // Show interview scheduled popup
+        setTimeout(() => {
+          showToastMessage(`Interview for Round ${emailRound} has been scheduled successfully!`, 'success');
+        }, 1000);
+      } else {
+        console.error('No pendingInterviewerInfo found in emailCandidate:', emailCandidate);
+        showToastMessage('Error: Interviewer information not found. Please try again.', 'error');
+      }
       
       setShowEmailScheduling(false);
       setEmailCandidate(null);
       setEmailRound(null);
+      setSelectedCandidate(null); // Clear the selected candidate after everything is done
     } catch (error) {
       console.error('Error sending interview email:', error);
       showToastMessage(`Failed to send email: ${error.message}`, 'error');
@@ -236,6 +317,7 @@ const ApplicantManagement = ({ jobId }) => {
     setShowEmailScheduling(false);
     setEmailCandidate(null);
     setEmailRound(null);
+    setSelectedCandidate(null); // Clear the selected candidate when email modal is closed
   };
 
 
@@ -273,6 +355,8 @@ const ApplicantManagement = ({ jobId }) => {
       } else {
         newSet.add(candidateId);
       }
+      // Save state to localStorage
+      saveStateToStorage(activeTab, newSet);
       return newSet;
     });
   };
@@ -346,6 +430,8 @@ const ApplicantManagement = ({ jobId }) => {
     }
 
     setActiveTab(newTabId);
+    // Save state to localStorage
+    saveStateToStorage(newTabId, expandedCards);
   };
 
   const renderCandidateCard = (candidate) => {

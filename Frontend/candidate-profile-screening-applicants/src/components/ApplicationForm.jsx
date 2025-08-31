@@ -43,9 +43,9 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
     
     // Special handling for phone number formatting
     if (name === 'phone') {
-      // Remove all non-digit characters except +, -, (, ), and spaces
-      const cleaned = value.replace(/[^\d\s\-\(\)\+]/g, '');
-      setFormData(prev => ({ ...prev, [name]: cleaned }));
+      // Remove all non-digit characters but don't limit length
+      const digitsOnly = value.replace(/\D/g, '');
+      setFormData(prev => ({ ...prev, [name]: digitsOnly }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -104,14 +104,13 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
     } else {
-      // Remove all non-digit characters for validation
-      const phoneDigits = formData.phone.replace(/\D/g, '');
-      
-      // Check if it's a valid phone number (10-15 digits)
-      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-        newErrors.phone = 'Phone number must be between 10-15 digits';
-      } else if (!/^[+]?[\d\s\-\(\)]+$/.test(formData.phone.trim())) {
-        newErrors.phone = 'Please enter a valid phone number format';
+      // Check if it's more than 10 digits
+      if (formData.phone.length > 10) {
+        newErrors.phone = 'Enter valid phone number';
+      } else if (formData.phone.length < 10) {
+        newErrors.phone = 'Phone number must be exactly 10 digits';
+      } else if (!/^\d{10}$/.test(formData.phone)) {
+        newErrors.phone = 'Phone number must contain only digits';
       }
     }
     if (!formData.resume) newErrors.resume = 'Resume is required';
@@ -315,8 +314,6 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sg-red focus:border-transparent"
                           placeholder="Enter your phone number"
-                          pattern="[+]?[\d\s\-\(\)]+"
-                          maxLength="20"
                         />
                         {errors.phone && (
                           <p className="mt-1 text-sm text-red-500">
