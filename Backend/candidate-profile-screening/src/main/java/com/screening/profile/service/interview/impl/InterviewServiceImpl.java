@@ -45,6 +45,15 @@ public class InterviewServiceImpl implements InterviewService {
             interview.setRound1Details(interviewDetails.getRound1Details());
             interview.setRound2Details(interviewDetails.getRound2Details());
             interview.setRound3Details(interviewDetails.getRound3Details());
+            if(interview.getRound3Details()!= null){
+                interview.setRound3Done(true);
+            }
+            else if(interview.getRound2Details()!= null){
+                interview.setRound2Done(true);
+            }
+            else if(interview.getRound1Details()!= null){
+                interview.setRound1Done(true);
+            }
             interview.setJobApplication(interviewDetails.getJobApplication());
             String feedback = getSummarizedFeedback(interviewDetails);
             interview.setFeedback(feedback);
@@ -93,9 +102,12 @@ public class InterviewServiceImpl implements InterviewService {
         return interviewRepository.save(interview);
     }
 
+
     @Override
     public List<InterviewerPageResponseDTO> findPendingInterviewsForInterviewer(String email) {
-        List<Interview> interviews = interviewRepository.findPendingInterviewsForInterviewer(email);
+        Optional<Admin> interviewer= adminRepository.findByEmail(email);
+        Long interviewerId= interviewer.get().getId();
+        List<Interview> interviews = interviewRepository.findPendingInterviewsByAdminId(interviewerId);
 
         return interviews.stream().map(i -> {
             Candidate c = i.getJobApplication().getCandidate();
@@ -133,7 +145,9 @@ public class InterviewServiceImpl implements InterviewService {
 
     @Override
     public List<InterviewerPageResponseDTO> findCompletedInterviewsForInterviewer(String email) {
-        List<Interview> interviews = interviewRepository.findCompletedInterviewsForInterviewer(email);
+        Optional<Admin> interviewer= adminRepository.findByEmail(email);
+        Long interviewerId= interviewer.get().getId();
+        List<Interview> interviews = interviewRepository.findCompletedInterviewsByAdminId(interviewerId);
 
         return interviews.stream().map(i -> {
             Candidate c = i.getJobApplication().getCandidate();
