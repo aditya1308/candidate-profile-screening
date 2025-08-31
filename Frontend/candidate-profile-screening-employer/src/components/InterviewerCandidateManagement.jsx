@@ -56,6 +56,7 @@ const InterviewerCandidateManagement = () => {
                  return interviewData.map(interview => {
            const transformed = {
              id: interview.interviewId,
+             interviewId: interview.interviewId, // Explicitly set interviewId
              name: interview.candidate?.name || 'Unknown Candidate',
              email: interview.candidate?.email || '',
              phone: interview.candidate?.phoneNumber || '',
@@ -175,14 +176,24 @@ const InterviewerCandidateManagement = () => {
         round3Details: round3Details,
         feedback: feedback, // Overall feedback
         jobApplication: {
-          id: candidate.jobApplicationId || null
+          id: candidate.jobApplicationId
         }
       };
 
       console.log('Submitting feedback data:', feedbackData);
+      console.log('Candidate data:', candidate);
 
-      // Call the API to submit feedback
-      await interviewService.submitFeedback(candidateId, feedbackData);
+      // Call the API to submit feedback - use jobApplicationId, not interviewId
+      const jobApplicationId = candidate.jobApplicationId;
+      console.log('Job application ID:', jobApplicationId);
+      
+      if (!jobApplicationId) {
+        showToastMessage("Job application ID not found", "error");
+        return;
+      }
+      
+      console.log('Calling interviewService.submitFeedback with:', { jobApplicationId, feedbackData });
+      await interviewService.submitFeedback(jobApplicationId, feedbackData);
       
       showToastMessage("Feedback submitted successfully!", "success");
       
@@ -195,6 +206,9 @@ const InterviewerCandidateManagement = () => {
 
       // Refresh the data to show updated status
       await fetchCandidates();
+      
+      // Show success message
+      showToastMessage("Feedback submitted successfully! Candidate moved to completed list.", "success");
       
     } catch (err) {
       console.error("Error submitting feedback:", err);
