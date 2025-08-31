@@ -12,6 +12,7 @@ import com.screening.profile.model.Interview;
 import com.screening.profile.repository.CandidateRepository;
 import com.screening.profile.repository.JobApplicationRepository;
 import com.screening.profile.repository.InterviewRepository;
+import com.screening.profile.service.EmailService;
 import com.screening.profile.service.job.JobService;
 import com.screening.profile.service.candidate.CandidateService;
 import com.screening.profile.util.enums.Status;
@@ -43,12 +44,14 @@ public class CandidateServiceImpl implements CandidateService {
     private final JobApplicationRepository jobApplicationRepository;
     private final InterviewRepository interviewRepository;
     private final JobService jobService;
+    private EmailService emailService;
 
-    public CandidateServiceImpl(CandidateRepository candidateRepository, JobApplicationRepository jobApplicationRepository, InterviewRepository interviewRepository, JobService jobService) {
+    public CandidateServiceImpl(CandidateRepository candidateRepository, JobApplicationRepository jobApplicationRepository, InterviewRepository interviewRepository, JobService jobService, EmailService emailService) {
         this.candidateRepository = candidateRepository;
         this.jobApplicationRepository = jobApplicationRepository;
         this.interviewRepository = interviewRepository;
         this.jobService = jobService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -145,6 +148,30 @@ public class CandidateServiceImpl implements CandidateService {
         if(savedCandidate.isPresent()){
             Candidate newCandidate = savedCandidate.get();
             newCandidate.setStatus(status);
+            log.info("in update method");
+            if(Status.HIRED.equals(status)){
+                log.info("Hired!!");
+                String body = "Dear " + newCandidate.getName()+ ",\n\n" +
+                        "Congratulations! 🎉\n\n" +
+                        "We are pleased to inform you that you have been selected for the position at our company.\n" +
+                        "Our HR team will be in touch with you shortly to discuss the next steps in the hiring process.\n\n" +
+                        "We look forward to working with you!\n\n" +
+                        "Best regards,\nHR Team";
+
+                emailService.sendInterviewMail(newCandidate.getEmail(), "Congratulations! You're Selected", body);
+            }
+            else if(Status.REJECTED.equals(status)){
+                log.info("Rejected!!");
+                String body = "Dear " + newCandidate.getName() + ",\n\n" +
+                        "Thank you for applying at Societe Generale.\n" +
+                        "After careful consideration, we regret to inform you that you have not been selected for the position.\n\n" +
+                        "We appreciate your interest and encourage you to apply for future opportunities.\n\n" +
+                        "Best regards,\nHR Team";
+
+                emailService.sendInterviewMail(newCandidate.getEmail(), "Thank you for your interest", body);
+
+            }
+
             candidateRepository.save(newCandidate);
             return true;
         }
