@@ -23,4 +23,7 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     @Modifying
     @Query("DELETE FROM JobApplication a WHERE a.job.id = :jobId")
     void deleteByJobId(@Param("jobId") Integer jobId);
+
+    @Query(value = "SELECT id FROM job_application WHERE job_id = :jobId ", nativeQuery = true)
+    List<Integer> findJobApplicationIdByJobId(@Param("jobId") Integer jobId);
 }

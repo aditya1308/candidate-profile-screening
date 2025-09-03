@@ -1,6 +1,7 @@
 package com.screening.profile.service.job.impl;
 
 import com.screening.profile.model.Job;
+import com.screening.profile.repository.InterviewRepository;
 import com.screening.profile.repository.JobRepository;
 import com.screening.profile.repository.JobApplicationRepository;
 import com.screening.profile.service.job.JobService;
@@ -17,11 +18,13 @@ import java.util.Optional;
 public class JobServiceImpl implements JobService {
     private final JobRepository jobRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final InterviewRepository interviewRepository;
 
     @Autowired
-    public JobServiceImpl(JobRepository jobRepository, JobApplicationRepository jobApplicationRepository) {
+    public JobServiceImpl(JobRepository jobRepository, JobApplicationRepository jobApplicationRepository, InterviewRepository interviewRepository) {
         this.jobRepository = jobRepository;
         this.jobApplicationRepository = jobApplicationRepository;
+        this.interviewRepository = interviewRepository;
     }
 
     @Override
@@ -77,6 +80,12 @@ public class JobServiceImpl implements JobService {
     public void deleteJob(Integer id) {
         Optional<Job> job = jobRepository.findById(id);
         if (job.isPresent()) {
+
+            List<Integer> jobIds = jobApplicationRepository.findJobApplicationIdByJobId(id);
+            for(Integer ids : jobIds) {
+                log.info("Deleting all interviews for job application with id : {}", ids);
+                interviewRepository.deleteByJobApplicationId(ids);
+            }
             // First delete all related job applications
             log.info("Deleting all applications for job with id: {}", id);
             jobApplicationRepository.deleteByJobId(id);
