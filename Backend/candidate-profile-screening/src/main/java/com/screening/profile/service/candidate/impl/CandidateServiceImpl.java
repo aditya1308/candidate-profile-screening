@@ -15,6 +15,7 @@ import com.screening.profile.repository.InterviewRepository;
 import com.screening.profile.service.EmailService;
 import com.screening.profile.service.job.JobService;
 import com.screening.profile.service.candidate.CandidateService;
+import com.screening.profile.util.ExtractorHelperUtils;
 import com.screening.profile.util.enums.Status;
 import lombok.extern.slf4j.Slf4j;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
@@ -24,9 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +61,7 @@ public class CandidateServiceImpl implements CandidateService {
         String email = candidateReqDTO.getEmail();
         String name = candidateReqDTO.getName();
         String phone = candidateReqDTO.getPhoneNumber();
-        String uniqueId = createUniqueId(name, email, phone);
+        String uniqueId = ExtractorHelperUtils.createUniqueId(name, email, phone);
         List<JobApplication> apppliedJobList = jobApplicationRepository.findByJobId(jobId);
         JobApplication jobApplication = apppliedJobList.stream()
                 .filter(jobApp -> jobApp.getCandidate().getUniqueId()
@@ -227,7 +225,7 @@ public class CandidateServiceImpl implements CandidateService {
         return candidate.orElse(null);
     }
     public Candidate getOrCreateCandidate(String name, String email, String phone) {
-        String uniqueId = createUniqueId(name, email, phone);
+        String uniqueId = ExtractorHelperUtils.createUniqueId(name, email, phone);
         Optional<Candidate> existingCandidate = candidateRepository.findByUniqueId(uniqueId);
         
         if (existingCandidate.isPresent()) {
@@ -246,22 +244,19 @@ public class CandidateServiceImpl implements CandidateService {
         return candidateRepository.save(candidate);
     }
 
-    public String createUniqueId(String name, String email, String phone)
-    {
-        try {
-            String combined = name + email + phone;
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] hashBytes = md.digest(combined.getBytes(StandardCharsets.UTF_8));
+    public boolean isDuplicate(String newResumeText) {
+        List<Candidate> topCandidates = candidateRepository.findTopCandidatesByResumeText(newResumeText);
 
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hashBytes) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
+        for (Candidate existing : topCandidates) {
+            int similarityScore = FuzzySearch.ratio(newResumeText, existing.getResumeText());
+            if (similarityScore >= SIMILARITY_THRESHOLD) {
+                return true;
             }
-            return hexString.substring(0, 10);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error generating hash", e);
         }
+        return false;
+    }
+
+    public List<Candidate> saveAllCandidates(List<Candidate> candidateBatches){
+        return candidateRepository.saveAll(candidateBatches);
     }
 }
