@@ -2,6 +2,7 @@ package com.screening.profile.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.screening.profile.dto.CandidateInterviewDTO;
+import com.screening.profile.dto.CandidateProcessingDTO;
 import com.screening.profile.dto.CandidateReqDTO;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.service.PerplexityService;
@@ -132,12 +133,10 @@ public class JobMatchController {
 
     @PostMapping("/bulk-upload")
     public ResponseEntity<?> bulkUpload(@RequestParam("resumePdf") List<MultipartFile> resumePdf, @RequestParam("jobId") Long jobId) throws Exception {
+
         long startTime = System.currentTimeMillis();
-
         log.info("JobController copy, file received");
-
-
-        List<Candidate> candidate = this.perplexityService.askPerplexityAndGetParallelResponse(resumePdf, jobId);
+        CandidateProcessingDTO candidate = this.perplexityService.askPerplexityAndGetParallelResponse(resumePdf, jobId);
         if (candidate == null) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)

@@ -2,6 +2,7 @@ package com.screening.profile.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.screening.profile.dto.CandidateProcessingDTO;
 import com.screening.profile.dto.CandidateReqDTO;
 import com.screening.profile.exception.ServiceException;
 import com.screening.profile.model.Candidate;
@@ -124,11 +125,11 @@ public class PerplexityService {
         }
     }
 
-    public List<Candidate> askPerplexityAndGetParallelResponse(List<MultipartFile> resumeFile, Long jobId){
+    public CandidateProcessingDTO askPerplexityAndGetParallelResponse(List<MultipartFile> resumeFile, Long jobId){
 
         int poolSize = Math.min(resumeFile.size(), 20);
         ExecutorService executor = Executors.newFixedThreadPool(poolSize);
-
+        List<String> duplicateList = Collections.synchronizedList(new ArrayList<>());
         try {
             List<CompletableFuture<Candidate>> futures = resumeFile.stream()
                     .map(resumes -> CompletableFuture.supplyAsync(() -> {
@@ -140,6 +141,7 @@ public class PerplexityService {
                             String resume = extractText(resumes);
                             if (candidateService.isDuplicate(resume)) {
                                 log.info("Duplicate candidate!");
+                                duplicateList.add(resumes.getOriginalFilename());
                                 return null;
                             }
                             Map<String, Object> payload = new HashMap<>();
@@ -227,7 +229,11 @@ public class PerplexityService {
                     .toList();
 
             log.info("CandidateList size : {}", candidateList.size());
-            return candidateService.saveAllCandidates(candidateList);
+            List<Candidate> savedCandidate = candidateService.saveAllCandidates(candidateList);
+            CandidateProcessingDTO candidateProcessingDTO = new CandidateProcessingDTO();
+            candidateProcessingDTO.setProcessedCandidates(savedCandidate);
+            candidateProcessingDTO.setUnProcessedCandidates(duplicateList);
+            return candidateProcessingDTO;
         } finally {
             executor.shutdown();
         }
