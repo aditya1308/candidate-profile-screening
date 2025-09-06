@@ -129,4 +129,23 @@ public class JobMatchController {
         }
         return ResponseEntity.status(HttpStatus.OK).body(candidate);
     }
+
+    @PostMapping("/bulk-upload")
+    public ResponseEntity<?> bulkUpload(@RequestParam("resumePdf") List<MultipartFile> resumePdf, @RequestParam("jobId") Long jobId) throws Exception {
+        long startTime = System.currentTimeMillis();
+
+        log.info("JobController copy, file received");
+
+
+        List<Candidate> candidate = this.perplexityService.askPerplexityAndGetParallelResponse(resumePdf, jobId);
+        if (candidate == null) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("Error in controller");
+        }
+        long endTime = System.currentTimeMillis();
+        long timeTaken = endTime - startTime;
+        log.info("Total time taken for execution : {}", timeTaken);
+        return ResponseEntity.ok().body(candidate);
+    }
 }

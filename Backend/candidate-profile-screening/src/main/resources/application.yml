@@ -1,11 +1,12 @@
 server:
   port: 8092
 spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
   application:
     name : candidate-profile-screening
-  ai:
-    openai:
-      api-key: ahjj
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:

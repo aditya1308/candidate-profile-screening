@@ -1,0 +1,1 @@
+ALTER TABLE candidate ADD FULLTEXT INDEX idx_resume_text (resume_text);
