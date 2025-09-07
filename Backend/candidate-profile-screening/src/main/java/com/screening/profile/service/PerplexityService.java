@@ -210,6 +210,8 @@ public class PerplexityService {
                                         candidateBatch.setSummary(summary);
                                         candidateBatch.setResumeText(resume);
                                         candidateBatch.setUniqueId(uniqueId);
+                                        candidateService.saveCandidate(candidateBatch);
+                                        candidateService.saveJobApplicationAndInterview(jobId,candidateBatch);
                                         return candidateBatch;
                                     }
                                 }
@@ -229,9 +231,8 @@ public class PerplexityService {
                     .toList();
 
             log.info("CandidateList size : {}", candidateList.size());
-            List<Candidate> savedCandidate = candidateService.saveAllCandidates(candidateList);
             CandidateProcessingDTO candidateProcessingDTO = new CandidateProcessingDTO();
-            candidateProcessingDTO.setProcessedCandidates(savedCandidate);
+            candidateProcessingDTO.setProcessedCandidates(candidateList);
             candidateProcessingDTO.setUnProcessedCandidates(duplicateList);
             return candidateProcessingDTO;
         } finally {

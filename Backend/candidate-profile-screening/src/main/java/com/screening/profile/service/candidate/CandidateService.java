@@ -20,4 +20,5 @@ public interface CandidateService {
     List<CandidateInterviewDTO> getCandidatesWithInterviewFeedbackByJobId(Long id) throws JsonProcessingException;
     List<Candidate> saveAllCandidates(List<Candidate> candidateBatches);
     boolean isDuplicate(String newResumeText);
+    void saveJobApplicationAndInterview(Long jobId, Candidate candidate);
 }

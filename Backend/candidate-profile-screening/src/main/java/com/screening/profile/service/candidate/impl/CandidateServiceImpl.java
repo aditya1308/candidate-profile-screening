@@ -68,7 +68,6 @@ public class CandidateServiceImpl implements CandidateService {
                 .equals(uniqueId)).findFirst()
                 .orElse(null);
 
-        // Duplicacy logic needs to be checked
         if(jobApplication != null){
             Long id = jobApplication.getCandidate().getId();
             if(candidateRepository.findById(id).isPresent()) {
@@ -77,23 +76,7 @@ public class CandidateServiceImpl implements CandidateService {
             }
         }
 
-        //Duplicacy check on content similarity with different email and phoneNumber
-        List<JobApplication> allJobApplications = jobApplicationRepository.findByJobId(jobId);
-
-        boolean isDuplicate = allJobApplications.stream()
-                .map(JobApplication::getCandidate)
-                .filter(candidateForThisApplication -> candidateForThisApplication.getName().equals(candidateReqDTO.getName())
-                        && candidateForThisApplication.getDateOfBirth().equals(candidateReqDTO.getDob()))
-                .anyMatch(candidateForThisApplication -> {
-                    int similarityScore = FuzzySearch.ratio(
-                            candidateReqDTO.getResumeText(),
-                            candidateForThisApplication.getResumeText()
-                    );
-                    log.info("Similarity score : {}", similarityScore);
-                    return similarityScore >= SIMILARITY_THRESHOLD;
-                });
-
-        if (isDuplicate) {
+        if (isDuplicate(resumeText)) {
             log.info("You have already applied for this job role with different email/phone number");
             throw new DuplicateCandidateException("You have already applied for this job role with different email/phone number");
         }
@@ -114,6 +97,12 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setResumeText(resumeText);
         log.info(candidate.toString());
         candidateRepository.save(candidate);
+        saveJobApplicationAndInterview(jobId, candidate);
+
+        return candidate;
+    }
+
+    public void saveJobApplicationAndInterview(Long jobId, Candidate candidate) {
         JobApplication newJobApplication = new JobApplication();
         newJobApplication.setCandidate(candidate);
         newJobApplication.setJob(jobService.getJob(Math.toIntExact(jobId)).get());
@@ -122,8 +111,6 @@ public class CandidateServiceImpl implements CandidateService {
         Interview interview = new Interview();
         interview.setJobApplication(newJobApplication);
         interviewRepository.save(interview);
-        
-        return candidate;
     }
 
     public List<Candidate> getAllCandidates(){
