@@ -207,6 +207,15 @@ public class CandidateServiceImpl implements CandidateService {
         return dtoList;
     }
 
+    @Override
+    public List<Candidate> getCandidatesByEmail(String email) {
+        List<Optional<Candidate>> list= candidateRepository.findByEmail(email);
+        return list.stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+    }
+
     public Candidate getCandidateById(Long id) {
         Optional<Candidate> candidate = candidateRepository.findById(id);
         return candidate.orElse(null);

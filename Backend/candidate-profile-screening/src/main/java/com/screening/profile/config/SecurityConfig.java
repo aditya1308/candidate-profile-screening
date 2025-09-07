@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("/admins/signup", "/admins/signin").permitAll()
                         // Public job endpoints for applicants
                         .requestMatchers("GET", "/api/v1/jobs/**").permitAll()
+                        .requestMatchers("POST", "/api/chatbot/message").permitAll()
                         .requestMatchers("POST", "/api/v1/apply-job").permitAll()
                         // All other requests require authentication
                         .anyRequest().authenticated()
