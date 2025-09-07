@@ -76,7 +76,7 @@ public class CandidateServiceImpl implements CandidateService {
             }
         }
 
-        if (isDuplicate(resumeText)) {
+        if (isDuplicate(resumeText, jobId)) {
             log.info("You have already applied for this job role with different email/phone number");
             throw new DuplicateCandidateException("You have already applied for this job role with different email/phone number");
         }
@@ -240,8 +240,8 @@ public class CandidateServiceImpl implements CandidateService {
         return candidateRepository.save(candidate);
     }
 
-    public boolean isDuplicate(String newResumeText) {
-        List<Candidate> topCandidates = candidateRepository.findTopCandidatesByResumeText(newResumeText);
+    public boolean isDuplicate(String newResumeText, Long jobId) {
+        List<Candidate> topCandidates = candidateRepository.findTopCandidatesByResumeTextAndJob(newResumeText, jobId);
 
         for (Candidate existing : topCandidates) {
             int similarityScore = FuzzySearch.ratio(newResumeText, existing.getResumeText());

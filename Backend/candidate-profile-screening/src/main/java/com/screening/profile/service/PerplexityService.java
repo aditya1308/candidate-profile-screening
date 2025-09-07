@@ -139,7 +139,7 @@ public class PerplexityService {
                         try {
 
                             String resume = extractText(resumes);
-                            if (candidateService.isDuplicate(resume)) {
+                            if (candidateService.isDuplicate(resume, jobId)) {
                                 log.info("Duplicate candidate!");
                                 duplicateList.add(resumes.getOriginalFilename());
                                 return null;
