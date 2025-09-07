@@ -23,4 +23,5 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
             "LEFT JOIN interview i ON i.job_application_id = ja.id",
             nativeQuery = true)
     List<Object[]> findCandidatesWithInterviewFeedbackByJobId(@Param("jobId") Integer jobId);
+    List<Optional<Candidate>> findByEmail(String email);
 }
