@@ -4,6 +4,7 @@ import JobListings from './components/JobListings.jsx'
 import ApplicationForm from './components/ApplicationForm.jsx'
 import AboutPage from './components/AboutPage.jsx'
 import ContactPage from './components/ContactPage.jsx'
+import ChatBot from './components/ChatBot.jsx'
 import { jobService } from './services/jobService.js'
 import { useState, useEffect } from 'react'
 
@@ -46,9 +47,9 @@ const ApplicantRoutes = () => {
   if (currentPage === 'jobs') {
     if (loading) {
       return (
-        <div className="min-h-screen bg-sg-gray flex items-center justify-center">
+        <div className="flex items-center justify-center min-h-screen bg-sg-gray">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sg-red mx-auto mb-4"></div>
+            <div className="w-12 h-12 mx-auto mb-4 border-b-2 rounded-full animate-spin border-sg-red"></div>
             <p className="text-gray-600">Loading job openings...</p>
           </div>
         </div>
@@ -57,17 +58,17 @@ const ApplicantRoutes = () => {
     
     if (error) {
       return (
-        <div className="min-h-screen bg-sg-gray flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="flex items-center justify-center min-h-screen p-6 bg-sg-gray">
+          <div className="w-full max-w-md p-8 text-center bg-white shadow-xl rounded-xl">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full">
               <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">Error Loading Jobs</h1>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <button onClick={fetchJobs} className="w-full py-3 px-6 text-white font-semibold bg-sg-red hover:bg-sg-red/90 transition-all duration-200 rounded-lg mb-3">Try Again</button>
-            <button onClick={handleBackToLanding} className="w-full py-3 px-6 text-sg-red font-semibold border border-sg-red hover:bg-sg-red/10 transition-all duration-200 rounded-lg">Back to Home</button>
+            <h1 className="mb-2 text-xl font-bold text-gray-900">Error Loading Jobs</h1>
+            <p className="mb-6 text-gray-600">{error}</p>
+            <button onClick={fetchJobs} className="w-full px-6 py-3 mb-3 font-semibold text-white transition-all duration-200 rounded-lg bg-sg-red hover:bg-sg-red/90">Try Again</button>
+            <button onClick={handleBackToLanding} className="w-full px-6 py-3 font-semibold transition-all duration-200 border rounded-lg text-sg-red border-sg-red hover:bg-sg-red/10">Back to Home</button>
           </div>
         </div>
       )
@@ -82,16 +83,16 @@ const ApplicantRoutes = () => {
   
   if (currentPage === 'success' && submittedApplication) {
     return (
-      <div className="min-h-screen bg-sg-gray flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="flex items-center justify-center min-h-screen p-6 bg-sg-gray">
+        <div className="w-full max-w-md p-8 text-center bg-white shadow-xl rounded-xl">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full">
             <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h1>
-          <p className="text-gray-600 mb-6">Thank you for your application. We've received your submission and will review it carefully.</p>
-          <button onClick={handleBackToLanding} className="w-full py-3 px-6 text-white font-semibold bg-sg-red hover:bg-sg-red/90 transition-all duration-200 rounded-lg">Back to Home</button>
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">Application Submitted!</h1>
+          <p className="mb-6 text-gray-600">Thank you for your application. We've received your submission and will review it carefully.</p>
+          <button onClick={handleBackToLanding} className="w-full px-6 py-3 font-semibold text-white transition-all duration-200 rounded-lg bg-sg-red hover:bg-sg-red/90">Back to Home</button>
         </div>
       </div>
     )
@@ -111,6 +112,7 @@ export default function App() {
         <Route path="/contact" element={<ContactPage onBackToLanding={() => (window.location.href = '/')} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <ChatBot />
     </Router>
   )
 }
