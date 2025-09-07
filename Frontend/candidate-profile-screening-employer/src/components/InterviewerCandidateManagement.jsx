@@ -35,6 +35,8 @@ const InterviewerCandidateManagement = () => {
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [expandedCards, setExpandedCards] = useState(new Set());
   const [feedbackInputs, setFeedbackInputs] = useState({});
+  const [technicalScores, setTechnicalScores] = useState({});
+  const [behaviourScores, setBehaviourScores] = useState({});
   
   const { showToast, toastMessage, toastType, showToastMessage } = useToast();
 
@@ -116,9 +118,21 @@ const InterviewerCandidateManagement = () => {
   const handleSubmitFeedback = async (candidateId) => {
     try {
       const feedback = feedbackInputs[candidateId] || "";
+      const technicalScore = technicalScores[candidateId];
+      const behaviourScore = behaviourScores[candidateId];
       
       if (!feedback.trim()) {
         showToastMessage("Please provide feedback before submitting", "error");
+        return;
+      }
+
+      if (technicalScore === undefined || technicalScore === null) {
+        showToastMessage("Please provide a Technical/Functional score before submitting", "error");
+        return;
+      }
+
+      if (behaviourScore === undefined || behaviourScore === null) {
+        showToastMessage("Please provide a Behaviour score before submitting", "error");
         return;
       }
 
@@ -133,6 +147,19 @@ const InterviewerCandidateManagement = () => {
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
       const interviewerName = currentUser.name || "Current Interviewer";
 
+      // Concatenate scores as string
+      const scoresString = `Technical/Functional Score: ${technicalScore}/10, Behaviour Score: ${behaviourScore}/10`;
+      const feedbackWithScores = `${feedback}\n\nScoring:\n${scoresString}`;
+
+      // Console log the concatenated data being sent to backend
+      console.log('=== FEEDBACK DATA BEING SENT TO BACKEND ===');
+      console.log('Original Feedback:', feedback);
+      console.log('Technical Score:', technicalScore);
+      console.log('Behaviour Score:', behaviourScore);
+      console.log('Scores String:', scoresString);
+      console.log('Final Concatenated Feedback:', feedbackWithScores);
+      console.log('==========================================');
+
       // Determine which round to populate based on existing data
       let round1Details = candidate.round1Details;
       let round2Details = candidate.round2Details;
@@ -143,28 +170,28 @@ const InterviewerCandidateManagement = () => {
         // Round 1 is empty, populate it
         round1Details = {
           interviewerName: interviewerName,
-          feedback: feedback,
+          feedback: feedbackWithScores,
           status: "IN_PROCESS_ROUND1"
         };
       } else if (!round2Details) {
         // Round 1 exists but Round 2 is empty, populate Round 2
         round2Details = {
           interviewerName: interviewerName,
-          feedback: feedback,
+          feedback: feedbackWithScores,
           status: "IN_PROCESS_ROUND2"
         };
       } else if (!round3Details) {
         // Round 1 and 2 exist but Round 3 is empty, populate Round 3
         round3Details = {
           interviewerName: interviewerName,
-          feedback: feedback,
+          feedback: feedbackWithScores,
           status: "IN_PROCESS_ROUND3"
         };
       } else {
         // All rounds are filled, update the latest round (Round 3)
         round3Details = {
           interviewerName: interviewerName,
-          feedback: feedback,
+          feedback: feedbackWithScores,
           status: "IN_PROCESS_ROUND3"
         };
       }
@@ -174,19 +201,22 @@ const InterviewerCandidateManagement = () => {
         round1Details: round1Details,
         round2Details: round2Details,
         round3Details: round3Details,
-        feedback: feedback, // Overall feedback
+        feedback: feedbackWithScores, // Overall feedback with scores
         jobApplication: {
           id: candidate.jobApplicationId
         }
       };
 
-      console.log('Submitting feedback data:', feedbackData);
-      console.log('Candidate data:', candidate);
+      // Get job application ID
+      const jobApplicationId = candidate.jobApplicationId;
+      
+      console.log('=== COMPLETE FEEDBACK DATA OBJECT ===');
+      console.log('Feedback Data Object:', feedbackData);
+      console.log('Candidate Data:', candidate);
+      console.log('Job Application ID:', jobApplicationId);
+      console.log('=====================================');
 
       // Call the API to submit feedback - use jobApplicationId, not interviewId
-      const jobApplicationId = candidate.jobApplicationId;
-      console.log('Job application ID:', jobApplicationId);
-      
       if (!jobApplicationId) {
         showToastMessage("Job application ID not found", "error");
         return;
@@ -197,11 +227,21 @@ const InterviewerCandidateManagement = () => {
       
       showToastMessage("Feedback submitted successfully!", "success");
       
-      // Clear feedback input
+      // Clear feedback input and scores
       setFeedbackInputs((prev) => {
         const newInputs = { ...prev };
         delete newInputs[candidateId];
         return newInputs;
+      });
+      setTechnicalScores((prev) => {
+        const newScores = { ...prev };
+        delete newScores[candidateId];
+        return newScores;
+      });
+      setBehaviourScores((prev) => {
+        const newScores = { ...prev };
+        delete newScores[candidateId];
+        return newScores;
       });
 
       // Refresh the data to show updated status
@@ -251,6 +291,20 @@ const InterviewerCandidateManagement = () => {
 
   const handleFeedbackChange = (candidateId, value) => {
     setFeedbackInputs((prev) => ({
+      ...prev,
+      [candidateId]: value
+    }));
+  };
+
+  const handleTechnicalScoreChange = (candidateId, value) => {
+    setTechnicalScores((prev) => ({
+      ...prev,
+      [candidateId]: value
+    }));
+  };
+
+  const handleBehaviourScoreChange = (candidateId, value) => {
+    setBehaviourScores((prev) => ({
       ...prev,
       [candidateId]: value
     }));
@@ -383,7 +437,7 @@ const InterviewerCandidateManagement = () => {
 
              <div className="mb-6">
                <h4 className="mb-3 text-sm font-semibold text-gray-700">Summary</h4>
-               <p className="text-sm leading-relaxed text-gray-900 font-semibold">
+               <p className="text-sm font-semibold leading-relaxed text-gray-900">
                  {candidate.summary || 'No summary available'}
                </p>
              </div>
@@ -412,6 +466,100 @@ const InterviewerCandidateManagement = () => {
                       onChange={(e) => handleFeedbackChange(candidate.id, e.target.value)}
                     />
                   </div>
+
+                  {/* Full-Width Animated Scoring Sliders */}
+                  <div className="space-y-6">
+                    {/* Technical/Functional Score */}
+                    <div className="w-full">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-2xl">
+                            {(() => {
+                              const score = technicalScores[candidate.id] || 5;
+                              if (score <= 2) return '😞'; // Very poor
+                              if (score <= 4) return '😐'; // Poor
+                              if (score <= 6) return '🙂'; // Average
+                              if (score <= 8) return '😊'; // Good
+                              return '🚀'; // Excellent
+                            })()}
+                          </div>
+                          <label htmlFor={`technical-score-${candidate.id}`} className="text-sm font-medium text-gray-700">
+                            Technical/Functional
+                          </label>
+                        </div>
+                        <div className="text-sm font-bold text-gray-800">
+                          {technicalScores[candidate.id] || 5}/10
+                        </div>
+                      </div>
+                      
+                      <div className="relative w-full">
+                        <div className="tube-container">
+                          <div className="tube-background"></div>
+                          <div 
+                            className="tube-fill"
+                            style={{ 
+                              width: `${Math.max(((technicalScores[candidate.id] || 5) - 1) / 9 * 100, 0)}%` 
+                            }}
+                          ></div>
+                          <input
+                            id={`technical-score-${candidate.id}`}
+                            type="range"
+                            min="1"
+                            max="10"
+                            value={technicalScores[candidate.id] || 5}
+                            onChange={(e) => handleTechnicalScoreChange(candidate.id, parseInt(e.target.value))}
+                            className="w-full h-3 rounded-full appearance-none cursor-pointer animated-tube-slider focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Behaviour Score */}
+                    <div className="w-full">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-2xl">
+                            {(() => {
+                              const score = behaviourScores[candidate.id] || 5;
+                              if (score <= 2) return '😞'; // Very poor
+                              if (score <= 4) return '😐'; // Poor
+                              if (score <= 6) return '🙂'; // Average
+                              if (score <= 8) return '😊'; // Good
+                              return '🎯'; // Excellent
+                            })()}
+                          </div>
+                          <label htmlFor={`behaviour-score-${candidate.id}`} className="text-sm font-medium text-gray-700">
+                            Behavioural
+                          </label>
+                        </div>
+                        <div className="text-sm font-bold text-gray-800">
+                          {behaviourScores[candidate.id] || 5}/10
+                        </div>
+                      </div>
+                      
+                      <div className="relative w-full">
+                        <div className="tube-container">
+                          <div className="tube-background"></div>
+                          <div 
+                            className="tube-fill"
+                            style={{ 
+                              width: `${Math.max(((behaviourScores[candidate.id] || 5) - 1) / 9 * 100, 0)}%` 
+                            }}
+                          ></div>
+                          <input
+                            id={`behaviour-score-${candidate.id}`}
+                            type="range"
+                            min="1"
+                            max="10"
+                            value={behaviourScores[candidate.id] || 5}
+                            onChange={(e) => handleBehaviourScoreChange(candidate.id, parseInt(e.target.value))}
+                            className="w-full h-3 rounded-full appearance-none cursor-pointer animated-tube-slider focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex justify-end">
                     <Button3D
                       onClick={() => handleSubmitFeedback(candidate.id)}
@@ -430,7 +578,7 @@ const InterviewerCandidateManagement = () => {
                     <div>
                       <h4 className="mb-3 text-sm font-semibold text-gray-700">Overall Feedback Summary</h4>
                       <div className="p-4 bg-white border border-gray-200 rounded-md">
-                        <p className="text-sm text-gray-900 leading-relaxed">
+                        <p className="text-sm leading-relaxed text-gray-900">
                           {candidate.feedback}
                         </p>
                       </div>
@@ -498,6 +646,83 @@ const InterviewerCandidateManagement = () => {
         .animate-slideDown {
           animation: slideDown 0.4s ease-out forwards;
         }
+
+        /* Animated Tube Slider Styles */
+        .tube-container {
+          position: relative;
+          width: 100%;
+        }
+
+        .tube-background {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 12px;
+          background: #f8fafc;
+          border-radius: 6px;
+          z-index: 0;
+          border: 1px solid #e2e8f0;
+        }
+
+        .animated-tube-slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 0px;
+          width: 0px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+        }
+
+
+        .animated-tube-slider::-moz-range-thumb {
+          height: 0px;
+          width: 0px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+        }
+
+        .animated-tube-slider::-webkit-slider-track {
+          height: 12px;
+          border-radius: 6px;
+          background: transparent;
+          border: none;
+        }
+
+        .animated-tube-slider::-moz-range-track {
+          height: 12px;
+          border-radius: 6px;
+          background: transparent;
+          border: none;
+        }
+
+        .animated-tube-slider::-webkit-slider-runnable-track {
+          height: 12px;
+          border-radius: 6px;
+          background: transparent;
+        }
+
+        .animated-tube-slider {
+          background: transparent;
+          position: relative;
+          z-index: 3;
+        }
+
+        /* Animated Tube Fill Effect */
+        .tube-fill {
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 12px;
+          background: linear-gradient(90deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+          border-radius: 6px;
+          transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          z-index: 1;
+          min-width: 6px; /* Ensure it's always visible */
+          box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
+        }
+
       `}</style>
       
       <div className="space-y-4">
