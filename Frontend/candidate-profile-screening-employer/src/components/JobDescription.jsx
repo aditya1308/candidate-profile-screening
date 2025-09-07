@@ -7,7 +7,7 @@ const JobDescription = ({ job }) => {
             <h1 className="mb-2 text-2xl font-bold text-gray-900">{job.title}</h1>
             <p className="mb-3 text-lg text-gray-600">{job.company || 'Societe Generale'}</p>
           </div>
-          <div className="px-3 py-1 text-sm font-medium border rounded-full bg-green-500/10 text-green-600 border-green-500/20 ml-4 flex-shrink-0"> {job.status || 'Active'}</div>
+          <div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-medium text-green-600 border rounded-full bg-green-500/10 border-green-500/20"> {job.status || 'Active'}</div>
           
         </div>
         <div className="grid grid-cols-2 gap-4 mb-6">
