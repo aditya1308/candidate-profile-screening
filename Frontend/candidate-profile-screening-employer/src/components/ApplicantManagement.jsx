@@ -529,7 +529,7 @@ const ApplicantManagement = ({ jobId }) => {
         onOpenEmail={handleOpenEmail}
         onStatusUpdate={handleStatusUpdate}
         onShowToast={showToastMessage}
-                 onShowInterviewerSelection={(newStatus) => handleShowInterviewerSelection(candidate, newStatus)}
+        onShowInterviewerSelection={(newStatus) => handleShowInterviewerSelection(candidate, newStatus)}
         getScoreColor={getScoreColor}
         formatDate={formatDate}
       />
