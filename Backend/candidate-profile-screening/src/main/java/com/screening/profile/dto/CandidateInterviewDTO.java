@@ -19,7 +19,7 @@ public class CandidateInterviewDTO {
     private String name;
     private String phoneNumber;
     private String resumeText;
-    private Integer score;
+    private Double score;
     private String status;
     private String summary;
     private String uniqueId;

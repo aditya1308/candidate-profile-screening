@@ -82,7 +82,7 @@ public class CandidateServiceImpl implements CandidateService {
         }
 
         String summary = objectMapper.readTree(text).get("summary").asText();
-        Integer score = objectMapper.readTree(text).get("score").asInt();
+        Double score = objectMapper.readTree(text).get("score").asDouble();
         List<String> matchedSkills = objectMapper.readerForListOf(String.class).readValue(objectMapper.readTree(text).get("matchedSkills"));
         candidate.setEmail(email);
         candidate.setPhoneNumber(phone);
@@ -192,7 +192,7 @@ public class CandidateServiceImpl implements CandidateService {
                     (String) row[5],                 // name
                     (String) row[6],                 // phone_number
                     null,
-                    row[8] != null ? ((Number)row[8]).intValue() : null,  // score
+                    row[8] != null ? ((Number)row[8]).doubleValue() : null,  // score
                     (String) row[9],                 // status
                     (String) row[10],                 // summary
                     (String) row[11],                // unique_id
@@ -234,7 +234,7 @@ public class CandidateServiceImpl implements CandidateService {
         candidate.setEmail(email);
         candidate.setPhoneNumber(phone);
         candidate.setUniqueId(uniqueId);
-        candidate.setScore(0); // Default score
+        candidate.setScore(0.0); // Default score
         candidate.setSummary(""); // Default summary
         
         return candidateRepository.save(candidate);

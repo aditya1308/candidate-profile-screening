@@ -74,7 +74,7 @@ public class PerplexityService {
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of(
                 "role", "system",
-                "content", "You are an AI job screening assistant. Compare the following resume and job description, and output a JSON with fields matchedSkills (list), missingSkills (list), score (int 0-10), and summary (one line). In the summary also include the years of work experience matching with the job description and the work experience mentioned in resume which will not be explicitly mentioned"
+                "content", "You are an AI job screening assistant. Compare the following resume and job description, and output a JSON with fields matchedSkills (list), missingSkills (list), score (double 0-100 with 2 digit precision in percentage), and summary (one line). In the summary also include the years of work experience matching with the job description and the work experience mentioned in resume which will not be explicitly mentioned"
         ));
         messages.add(Map.of(
                 "role", "user",
@@ -159,7 +159,7 @@ public class PerplexityService {
                             List<Map<String, String>> messages = new ArrayList<>();
                             messages.add(Map.of(
                                     "role", "system",
-                                    "content", "You are an AI job screening assistant. Compare the following resume with the job description provided, and output a JSON with fields matchedSkills (list), missingSkills (list), score (int 0-10),name, email, phoneNumber and summary (one line). In the summary also include the years of work experience that matches with the job description."
+                                    "content", "You are an AI job screening assistant. Compare the following resume with the job description provided, and output a JSON with fields matchedSkills (list), missingSkills (list), score (double 0-100 with 2 digit precision in percentage),name, email, phoneNumber and summary (one line). In the summary also include the years of work experience that matches with the job description."
                             ));
                             messages.add(Map.of(
                                     "role", "user",
@@ -189,7 +189,7 @@ public class PerplexityService {
                                         String text = contentNode.asText();
                                         JsonNode node = objectMapper.readTree(text);
                                         String summary = objectMapper.readTree(text).get("summary").asText();
-                                        Integer score = objectMapper.readTree(text).get("score").asInt();
+                                        Double score = objectMapper.readTree(text).get("score").asDouble();
                                         List<String> matchedSkills = objectMapper.readerForListOf(String.class).readValue(objectMapper.readTree(text).get("matchedSkills"));
 
                                         String name = node.get("name").asText();
@@ -219,6 +219,7 @@ public class PerplexityService {
                             return null;
                         } catch (Exception e) {
 
+                            duplicateList.add(resumes.getOriginalFilename());
                             log.error("Got an error.....!!!!! : {}", e.getMessage());
                             return null;
                         }

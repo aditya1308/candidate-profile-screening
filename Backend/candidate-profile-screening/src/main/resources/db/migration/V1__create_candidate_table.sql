@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS candidate (
     name VARCHAR(255),
     phone_number VARCHAR(255) NOT NULL,
     resume_text LONGTEXT,
-    score INT,
+    score DOUBLE,
     status ENUM('HIRED','IN_PROCESS','IN_PROCESS_ROUND1','IN_PROCESS_ROUND2','IN_PROCESS_ROUND3','ON_HOLD','REJECTED'),
     summary VARCHAR(1000),
     unique_id VARCHAR(255)
