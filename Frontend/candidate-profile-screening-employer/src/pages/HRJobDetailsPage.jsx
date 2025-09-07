@@ -1,13 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, FileText, Users } from 'lucide-react';
+import { ArrowLeft, FileText, Users, Upload } from 'lucide-react';
 import JobDescription from '../components/JobDescription';
 import ApplicantManagement from '../components/ApplicantManagement';
 import JobAnalytics from '../components/JobAnalytics';
+import BulkUploadModal from '../components/BulkUploadModal';
+import Button3D from '../components/Button3D';
 import { jobService } from '../services/jobService';
+import { useAuth } from '../context/useAuth';
 
 const HRJobDetailsPage = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   
   // Load initial activeTab from localStorage or use default
   const getInitialActiveTab = () => {
@@ -24,6 +28,12 @@ const HRJobDetailsPage = () => {
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showBulkUploadModal, setShowBulkUploadModal] = useState(false);
+
+  // Check if user can access bulk upload feature (HR and SUPERADMIN only)
+  const canAccessBulkUpload = () => {
+    return user?.role === 'HR' || user?.role === 'SUPERADMIN';
+  };
 
   // Function to save active tab to localStorage
   const saveActiveTab = (tab) => {
@@ -86,18 +96,35 @@ const HRJobDetailsPage = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Full-width Navigation Bar with Back Button - Sticky below header */}
       <div className="sticky z-40 w-full bg-white border-b border-gray-200 shadow-sm top-16">
-        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-between h-20 px-6 sm:px-8 lg:px-12">
+          <div className="flex items-center space-x-6">
             <Link 
               to="/dashboard"
               className="flex items-center text-gray-600 transition-colors duration-200 hover:text-sg-red"
             >
-              <ArrowLeft className="w-5 h-5 mr-2" />
+              <ArrowLeft className="w-5 h-5 mr-3" />
               Back to Jobs
             </Link>
-            <div className="w-px h-6 bg-gray-300"></div>
-            <h1 className="text-lg font-semibold text-gray-900">{job.title}</h1>
+            <div className="w-px h-8 bg-gray-300"></div>
+            <h1 className="text-xl font-semibold text-gray-900">{job.title}</h1>
           </div>
+          {canAccessBulkUpload() && (
+            <div className="flex items-center space-x-4">
+              <div className="w-44">
+                <Button3D
+                  onClick={() => setShowBulkUploadModal(true)}
+                  buttonColor="bg-sg-red"
+                  shadowColor="bg-black"
+                  className="py-3 px-6 text-sm font-medium"
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <Upload className="w-4 h-4" />
+                    <span>Bulk Upload</span>
+                  </div>
+                </Button3D>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -167,6 +194,23 @@ const HRJobDetailsPage = () => {
           <ApplicantManagement jobId={id} />
         )}
       </div>
+
+      {/* Bulk Upload Modal - Only show if user has access */}
+      {canAccessBulkUpload() && (
+        <BulkUploadModal
+          isOpen={showBulkUploadModal}
+          onClose={() => setShowBulkUploadModal(false)}
+          jobId={parseInt(id)}
+          jobTitle={job.title}
+          onUploadSuccess={() => {
+            // Refresh the applicants tab if it's currently active
+            if (activeTab === 'applicants') {
+              // The ApplicantManagement component will handle refreshing its own data
+              // We could also trigger a refresh here if needed
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
