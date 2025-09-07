@@ -11,6 +11,7 @@ import EmptyState from "./EmptyState";
 import ToastNotification from "./ToastNotification";
 import ResumeModal from "./ResumeModal";
 import ErrorBoundary from "./ErrorBoundary";
+import Button3D from "./Button3D";
 import useToast from "../hooks/useToast";
 import { 
   filterCandidatesByTab, 
@@ -371,6 +372,62 @@ const ApplicantManagement = ({ jobId }) => {
     showToastMessage(result.message, result.success ? "success" : "error");
   };
 
+  const exportToCSV = () => {
+    try {
+      // Filter out unnecessary data and prepare clean candidate data
+      const exportData = candidates.map(candidate => ({
+        'Name': candidate.name || candidate.fullName || 'N/A',
+        'Email': candidate.email || 'N/A',
+        'Phone Number': candidate.phoneNumber || candidate.phone || 'N/A',
+        'Score': candidate.score || 0,
+        'Applied Date': candidate.appliedDate ? formatDate(candidate.appliedDate) : 'N/A',
+        'Feedback Summary': candidate.feedbackSummary || 'N/A'
+      }));
+
+      // Convert data to CSV format
+      const headers = Object.keys(exportData[0] || {});
+      const csvContent = [
+        headers.join(','), // Header row
+        ...exportData.map(row => 
+          headers.map(header => {
+            const value = row[header] || '';
+            // Escape commas and quotes in CSV
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          }).join(',')
+        )
+      ].join('\n');
+
+      // Create and download the file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        
+        // Generate filename with current date
+        const currentDate = new Date().toISOString().split('T')[0];
+        const filename = `shortlisted_candidates_${currentDate}.csv`;
+        link.setAttribute('download', filename);
+        
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        URL.revokeObjectURL(url);
+      }
+
+      showToastMessage('CSV file exported successfully!', 'success');
+    } catch (error) {
+      console.error('Error exporting to CSV:', error);
+      showToastMessage('Failed to export CSV file', 'error');
+    }
+  };
+
   const tabs = [
     {
       id: "applied",
@@ -440,7 +497,7 @@ const ApplicantManagement = ({ jobId }) => {
     if (!candidate) {
       console.error('renderCandidateCard: candidate is null or undefined');
       return (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
           <p className="text-red-600">Error: Candidate data is missing</p>
         </div>
       );
@@ -449,9 +506,9 @@ const ApplicantManagement = ({ jobId }) => {
     if (!candidate.id) {
       console.error('renderCandidateCard: candidate.id is missing');
       return (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
           <p className="text-red-600">Error: Candidate ID is missing</p>
-          <pre className="text-xs mt-2">{JSON.stringify(candidate, null, 2)}</pre>
+          <pre className="mt-2 text-xs">{JSON.stringify(candidate, null, 2)}</pre>
         </div>
       );
     }
@@ -596,6 +653,25 @@ const ApplicantManagement = ({ jobId }) => {
            activeTab={activeTab} 
            onTabSwitch={handleTabSwitch} 
          />
+
+        {/* Export Button for Shortlisted Tab */}
+        {activeTab === 'onhold' && candidates.length > 0 && (
+          <div className="mb-4">
+            <Button3D
+              onClick={exportToCSV}
+              buttonColor="bg-green-500"
+              shadowColor="bg-green-700"
+              className="w-full"
+            >
+              <div className="flex items-center justify-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export to CSV
+              </div>
+            </Button3D>
+          </div>
+        )}
 
         {/* Candidate Cards Grid or Interviewer Selection Screen */}
         <div className="space-y-3">
