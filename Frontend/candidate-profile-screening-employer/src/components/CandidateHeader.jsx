@@ -74,7 +74,7 @@ const CandidateHeader = ({
             )} hover:scale-105 transition-transform duration-300 ease-out`}
           >
             <Star className="w-4 h-4 mr-1 hover:animate-glow" />
-            {candidate.score}/100
+            {candidate.score}%
           </span>
           <div className="flex items-center text-xs text-gray-600">
             <Tag className="w-4 h-4 mr-1 hover:animate-float" />
