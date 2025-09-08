@@ -159,7 +159,7 @@ public class PerplexityService {
                             List<Map<String, String>> messages = new ArrayList<>();
                             messages.add(Map.of(
                                     "role", "system",
-                                    "content", "You are an AI job screening assistant. Compare the following resume with the job description provided, and output a JSON with fields matchedSkills (list), missingSkills (list), score (double 0-100 with 2 digit precision in percentage),name, email, phoneNumber and summary (one line). In the summary also include the years of work experience that matches with the job description."
+                                    "content", "You are an AI job screening assistant. Compare the following resume with the job description provided, and output a JSON with fields matchedSkills (list), missingSkills (list), score (double 0-100 with 2 digit precision in percentage),name, email, phoneNumber and summary (one line). You must output ONLY a valid JSON object. Do not include explanations, Markdown, or code fences. In the summary also include the years of work experience that matches with the job description."
                             ));
                             messages.add(Map.of(
                                     "role", "user",
