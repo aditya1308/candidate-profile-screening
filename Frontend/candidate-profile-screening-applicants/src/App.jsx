@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import LandingPage from './components/LandingPage.jsx'
 import JobListings from './components/JobListings.jsx'
 import ApplicationForm from './components/ApplicationForm.jsx'
@@ -9,12 +9,25 @@ import { jobService } from './services/jobService.js'
 import { useState, useEffect } from 'react'
 
 const ApplicantRoutes = () => {
+  const location = useLocation()
   const [currentPage, setCurrentPage] = useState('landing')
   const [selectedJob, setSelectedJob] = useState(null)
   const [submittedApplication, setSubmittedApplication] = useState(null)
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  // Handle URL changes
+  useEffect(() => {
+    const path = location.pathname
+    if (path === '/jobs') {
+      setCurrentPage('jobs')
+    } else if (path === '/apply') {
+      setCurrentPage('apply')
+    } else if (path === '/') {
+      setCurrentPage('landing')
+    }
+  }, [location.pathname])
 
   useEffect(() => {
     if (currentPage === 'jobs') {

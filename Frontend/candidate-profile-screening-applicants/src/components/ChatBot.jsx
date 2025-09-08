@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Send, Bot, User, Trash2 } from 'lucide-react';
 import { chatService } from '../services/chatService.js';
 
 const ChatBot = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -39,6 +41,53 @@ const ChatBot = () => {
     return formattedMessage;
   };
 
+  const formatLinksInMessage = (message) => {
+    // Define link mappings for specific URLs
+    const linkMappings = {
+      'http://localhost:8092/api/v1/jobs': 'jobs',
+      'http://localhost:5174/about': 'about',
+      'http://localhost:5174/contact': 'contact'
+    };
+
+    let formattedMessage = message;
+    
+    // Replace specific URLs with clickable text
+    Object.entries(linkMappings).forEach(([url, text]) => {
+      const regex = new RegExp(url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      formattedMessage = formattedMessage.replace(regex, text);
+    });
+
+    return formattedMessage;
+  };
+
+  const renderMessageWithLinks = (message) => {
+    const formattedMessage = formatLinksInMessage(message);
+    
+    // Split message by potential link text and create clickable elements
+    const linkMappings = {
+      'jobs': '/jobs',
+      'about': '/about',
+      'contact': '/contact'
+    };
+
+    const parts = formattedMessage.split(/(jobs|about|contact)/);
+    
+    return parts.map((part, index) => {
+      if (linkMappings[part]) {
+        return (
+          <span
+            key={index}
+            className="text-blue-600 underline cursor-pointer hover:text-blue-800 transition-colors"
+            onClick={() => navigate(linkMappings[part])}
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   const sendMenuPrompt = (callback) => {
     // Send a small button message for main menu
     const menuPrompt = 'Show Main Menu';
@@ -66,9 +115,10 @@ const ChatBot = () => {
     setIsLoading(true);
     chatService.getInitialMessage()
       .then(response => {
-        const formattedResponse = formatStatusMessage(response);
-        typeMessage(formattedResponse, () => {
-          setMessages([{ text: formattedResponse, isBot: true, timestamp: new Date() }]);
+        const statusFormattedResponse = formatStatusMessage(response);
+        const fullyFormattedResponse = formatLinksInMessage(statusFormattedResponse);
+        typeMessage(fullyFormattedResponse, () => {
+          setMessages([{ text: fullyFormattedResponse, isBot: true, timestamp: new Date() }]);
           setIsLoading(false);
         });
       })
@@ -86,6 +136,9 @@ const ChatBot = () => {
     setIsTyping(true);
     setTypingMessage('');
     
+    // Format the message first to replace URLs with friendly text
+    const formattedMessage = formatLinksInMessage(message);
+    
     // Scroll to bottom before starting typing animation
     setTimeout(() => {
       scrollToBottom();
@@ -94,8 +147,8 @@ const ChatBot = () => {
     let currentIndex = 0;
     
     const typingInterval = setInterval(() => {
-      if (currentIndex < message.length) {
-        setTypingMessage(message.substring(0, currentIndex + 1));
+      if (currentIndex < formattedMessage.length) {
+        setTypingMessage(formattedMessage.substring(0, currentIndex + 1));
         currentIndex++;
       } else {
         clearInterval(typingInterval);
@@ -115,9 +168,10 @@ const ChatBot = () => {
       setIsLoading(true);
       chatService.getInitialMessage()
         .then(response => {
-          const formattedResponse = formatStatusMessage(response);
-          typeMessage(formattedResponse, () => {
-            setMessages([{ text: formattedResponse, isBot: true, timestamp: new Date() }]);
+          const statusFormattedResponse = formatStatusMessage(response);
+          const fullyFormattedResponse = formatLinksInMessage(statusFormattedResponse);
+          typeMessage(fullyFormattedResponse, () => {
+            setMessages([{ text: fullyFormattedResponse, isBot: true, timestamp: new Date() }]);
             setIsLoading(false);
           });
         })
@@ -146,17 +200,31 @@ const ChatBot = () => {
 
     try {
       const response = await chatService.sendMessage(userMessage);
-      const formattedResponse = formatStatusMessage(response);
+      const statusFormattedResponse = formatStatusMessage(response);
+      const fullyFormattedResponse = formatLinksInMessage(statusFormattedResponse);
       
-      typeMessage(formattedResponse, () => {
-        const botMessage = { text: formattedResponse, isBot: true, timestamp: new Date() };
+      typeMessage(fullyFormattedResponse, () => {
+        const botMessage = { text: fullyFormattedResponse, isBot: true, timestamp: new Date() };
         setMessages(prev => [...prev, botMessage]);
         setIsLoading(false);
         
-        // Send menu prompt after main response (except for initial greeting)
-        const initialGreeting = 'Hi! Please select an option:';
-        if (!formattedResponse.includes(initialGreeting)) {
-          sendMenuPrompt();
+        // Check if this is the exit message
+        if (fullyFormattedResponse.includes('Thank you! Have a nice day ahead.')) {
+          // Close chatbot after a short delay and clear chat history
+          setTimeout(() => {
+            setIsOpen(false);
+            // Clear all messages and reset state for fresh start
+            setMessages([]);
+            setTypingMessage('');
+            setIsTyping(false);
+            setIsLoading(false);
+          }, 2000); // 2 second delay to let user read the message
+        } else {
+          // Send menu prompt after main response (except for initial greeting)
+          const initialGreeting = 'Hi! Please select an option:';
+          if (!fullyFormattedResponse.includes(initialGreeting)) {
+            sendMenuPrompt();
+          }
         }
       });
     } catch (error) {
@@ -189,9 +257,10 @@ const ChatBot = () => {
     setIsLoading(true);
     chatService.getInitialMessage()
       .then(response => {
-        const formattedResponse = formatStatusMessage(response);
-        typeMessage(formattedResponse, () => {
-          setMessages([{ text: formattedResponse, isBot: true, timestamp: new Date() }]);
+        const statusFormattedResponse = formatStatusMessage(response);
+        const fullyFormattedResponse = formatLinksInMessage(statusFormattedResponse);
+        typeMessage(fullyFormattedResponse, () => {
+          setMessages([{ text: fullyFormattedResponse, isBot: true, timestamp: new Date() }]);
           setIsLoading(false);
         });
       })
@@ -213,7 +282,7 @@ const ChatBot = () => {
         </div>
         <div className="px-3 py-2 rounded-lg bg-gray-100 text-gray-800">
           <p className="text-sm whitespace-pre-wrap">
-            {typingMessage}
+            {renderMessageWithLinks(typingMessage)}
             <span className="inline-block w-2 h-4 bg-gray-400 ml-1 animate-pulse"></span>
           </p>
         </div>
@@ -295,7 +364,9 @@ const ChatBot = () => {
                           : 'bg-sg-red text-white'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                      <p className="text-sm whitespace-pre-wrap">
+                        {message.isBot ? renderMessageWithLinks(message.text) : message.text}
+                      </p>
                       <p className={`text-xs mt-1 ${
                         message.isBot ? 'text-gray-500' : 'text-red-100'
                       }`}>
