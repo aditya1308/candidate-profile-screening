@@ -23,4 +23,19 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
             "LEFT JOIN interview i ON i.job_application_id = ja.id",
             nativeQuery = true)
     List<Object[]> findCandidatesWithInterviewFeedbackByJobId(@Param("jobId") Integer jobId);
+    @Query(value = """
+    SELECT c.*, 
+           MATCH(c.resume_text) AGAINST (:resume IN NATURAL LANGUAGE MODE) AS relevance
+    FROM candidate c
+    INNER JOIN job_application ja ON c.id = ja.candidate_id
+    WHERE ja.job_id = :jobId
+      AND MATCH(c.resume_text) AGAINST (:resume IN NATURAL LANGUAGE MODE)
+    ORDER BY relevance DESC
+    LIMIT 10
+""", nativeQuery = true)
+    List<Candidate> findTopCandidatesByResumeTextAndJob(
+            @Param("resume") String resume,
+            @Param("jobId") Long jobId
+    );
+    List<Optional<Candidate>> findByEmail(String email);
 }

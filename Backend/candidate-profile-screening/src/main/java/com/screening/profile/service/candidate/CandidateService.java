@@ -18,4 +18,8 @@ public interface CandidateService {
     List<Candidate> getAllCandidatesByJobId(Long id);
     boolean updateCandidateStatus(Long id, Status status);
     List<CandidateInterviewDTO> getCandidatesWithInterviewFeedbackByJobId(Long id) throws JsonProcessingException;
+    List<Candidate> getCandidatesByEmail(String email);
+    List<Candidate> saveAllCandidates(List<Candidate> candidateBatches);
+    boolean isDuplicate(String newResumeText, Long jobId);
+    void saveJobApplicationAndInterview(Long jobId, Candidate candidate);
 }

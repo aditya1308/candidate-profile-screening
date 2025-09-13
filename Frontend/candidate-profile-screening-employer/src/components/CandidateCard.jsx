@@ -42,13 +42,37 @@ const CandidateCard = ({
 
       {/* Expanded Content */}
       {isExpanded && (
-                 <CandidateExpandedContent
-           candidate={candidate}
-           activeTab={activeTab}
-           onStatusUpdate={onStatusUpdate}
-           onShowToast={onShowToast}
-           onShowInterviewerSelection={onShowInterviewerSelection}
-         />
+        <div 
+          className="max-h-[600px] overflow-y-auto"
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#d1d5db #f3f4f6'
+          }}
+        >
+          <style jsx>{`
+            div::-webkit-scrollbar {
+              width: 6px;
+            }
+            div::-webkit-scrollbar-track {
+              background: #f3f4f6;
+              border-radius: 3px;
+            }
+            div::-webkit-scrollbar-thumb {
+              background: #d1d5db;
+              border-radius: 3px;
+            }
+            div::-webkit-scrollbar-thumb:hover {
+              background: #9ca3af;
+            }
+          `}</style>
+          <CandidateExpandedContent
+            candidate={candidate}
+            activeTab={activeTab}
+            onStatusUpdate={onStatusUpdate}
+            onShowToast={onShowToast}
+            onShowInterviewerSelection={onShowInterviewerSelection}
+          />
+        </div>
       )}
     </div>
   );

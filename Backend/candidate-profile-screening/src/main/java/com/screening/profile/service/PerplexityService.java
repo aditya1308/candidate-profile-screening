@@ -2,12 +2,15 @@ package com.screening.profile.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.screening.profile.dto.CandidateProcessingDTO;
 import com.screening.profile.dto.CandidateReqDTO;
 import com.screening.profile.exception.ServiceException;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.model.Job;
 import com.screening.profile.service.candidate.CandidateService;
 import com.screening.profile.service.job.JobService;
+import com.screening.profile.util.enums.Status;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,9 +20,15 @@ import java.net.URI;
 import java.net.http.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static com.screening.profile.util.ExtractorHelperUtils.createUniqueId;
+import static com.screening.profile.util.ExtractorHelperUtils.formatPhoneNumber;
 import static com.screening.profile.util.parser.PdfParsingUtil.extractText;
 
+@Slf4j
 @Service
 public class PerplexityService {
 
@@ -65,7 +74,7 @@ public class PerplexityService {
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of(
                 "role", "system",
-                "content", "You are an AI job screening assistant. Compare the following resume and job description, and output a JSON with fields matchedSkills (list), missingSkills (list), score (int 0-10), and summary (one line). In the summary also include the years of work experience matching with the job description and the work experience mentioned in resume which will not be explicitly mentioned"
+                "content", "You are an AI job screening assistant. Compare the following resume and job description, and output a JSON with fields matchedSkills (list), missingSkills (list), score (double 0-100 with 2 digit precision in percentage), and summary (one line). In the summary also include the years of work experience matching with the job description and the work experience mentioned in resume which will not be explicitly mentioned"
         ));
         messages.add(Map.of(
                 "role", "user",
@@ -115,6 +124,123 @@ public class PerplexityService {
             return candidateService.extractAndSaveCandidateDetails(resumeFile, fallback, jobId, candidateReqDTO);
         }
     }
+
+    public CandidateProcessingDTO askPerplexityAndGetParallelResponse(List<MultipartFile> resumeFile, Long jobId){
+
+        int poolSize = Math.min(resumeFile.size(), 20);
+        ExecutorService executor = Executors.newFixedThreadPool(poolSize);
+        List<String> duplicateList = Collections.synchronizedList(new ArrayList<>());
+        try {
+            List<CompletableFuture<Candidate>> futures = resumeFile.stream()
+                    .map(resumes -> CompletableFuture.supplyAsync(() -> {
+
+                        int activeThreadsInside = Thread.activeCount();
+                        log.info("Active threads inside : {}", activeThreadsInside);
+                        try {
+
+                            String resume = extractText(resumes);
+                            if (candidateService.isDuplicate(resume, jobId)) {
+                                log.info("Duplicate candidate!");
+                                duplicateList.add(resumes.getOriginalFilename());
+                                return null;
+                            }
+                            Map<String, Object> payload = new HashMap<>();
+                            payload.put("model", "sonar-pro");
+                            payload.put("max_tokens", 500);
+                            payload.put("temperature", 0.7);
+
+                            String jobDescriptionWithSkills = "";
+                            Optional<Job> job = jobService.getJob(Math.toIntExact(jobId));
+                            if (job.isPresent()) {
+                                jobDescriptionWithSkills = jobDescriptionWithSkills + job.get().getDescription();
+                                jobDescriptionWithSkills = jobDescriptionWithSkills + " Requrired Skills : ";
+                                jobDescriptionWithSkills = jobDescriptionWithSkills + job.get().getRequiredSkills();
+                            }
+                            List<Map<String, String>> messages = new ArrayList<>();
+                            messages.add(Map.of(
+                                    "role", "system",
+                                    "content", "You are an AI job screening assistant. Compare the following resume with the job description provided, and output a JSON with fields matchedSkills (list), missingSkills (list), score (double 0-100 with 2 digit precision in percentage),name, email, phoneNumber and summary (one line). You must output ONLY a valid JSON object. Do not include explanations, Markdown, or code fences. In the summary also include the years of work experience that matches with the job description."
+                            ));
+                            messages.add(Map.of(
+                                    "role", "user",
+                                    "content", String.format("Resume: %s\nJob Description: %s", resume, jobDescriptionWithSkills)
+                            ));
+                            payload.put("messages", messages);
+
+                            String requestBody = objectMapper.writeValueAsString(payload);
+                            HttpRequest request = HttpRequest.newBuilder()
+                                    .uri(URI.create(API_ENDPOINT))
+                                    .header("Authorization", "Bearer " + apiKey)
+                                    .header("Content-Type", "application/json")
+                                    .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+                                    .build();
+                            HttpResponse<String> response = HttpClient.newHttpClient()
+                                    .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                                    .join();
+
+                            JsonNode rootNode = objectMapper.readTree(response.body());
+                            JsonNode choices = rootNode.get("choices");
+                            if (choices != null && choices.isArray() && !choices.isEmpty()) {
+                                JsonNode firstChoice = choices.get(0);
+                                JsonNode message = firstChoice.get("message");
+                                if (message != null) {
+                                    JsonNode contentNode = message.get("content");
+                                    if (contentNode != null) {
+                                        String text = contentNode.asText();
+                                        JsonNode node = objectMapper.readTree(text);
+                                        String summary = objectMapper.readTree(text).get("summary").asText();
+                                        Double score = objectMapper.readTree(text).get("score").asDouble();
+                                        List<String> matchedSkills = objectMapper.readerForListOf(String.class).readValue(objectMapper.readTree(text).get("matchedSkills"));
+
+                                        String name = node.get("name").asText();
+                                        String email = node.get("email").asText();
+                                        String phoneNumber = node.get("phoneNumber").asText();
+                                        log.info("Name : {}, Email : {}, Phone Number : {}", name, email, phoneNumber);
+
+                                        String uniqueId = createUniqueId(name, email, phoneNumber);
+                                        Candidate candidateBatch = new Candidate();
+                                        candidateBatch.setName(name);
+                                        candidateBatch.setPhoneNumber(formatPhoneNumber(phoneNumber));
+                                        candidateBatch.setEmail(email);
+                                        candidateBatch.setStatus(Status.IN_PROCESS);
+                                        candidateBatch.setDateOfBirth(null);
+                                        candidateBatch.setFileData(resumes.getBytes());
+                                        candidateBatch.setMatchedSkills(matchedSkills);
+                                        candidateBatch.setScore(score);
+                                        candidateBatch.setSummary(summary);
+                                        candidateBatch.setResumeText(resume);
+                                        candidateBatch.setUniqueId(uniqueId);
+                                        candidateService.saveCandidate(candidateBatch);
+                                        candidateService.saveJobApplicationAndInterview(jobId,candidateBatch);
+                                        return candidateBatch;
+                                    }
+                                }
+                            }
+                            return null;
+                        } catch (Exception e) {
+
+                            duplicateList.add(resumes.getOriginalFilename());
+                            log.error("Got an error.....!!!!! : {}", e.getMessage());
+                            return null;
+                        }
+                    }, executor))
+                    .toList();
+
+            List<Candidate> candidateList = futures.stream()
+                    .map(CompletableFuture::join)
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            log.info("CandidateList size : {}", candidateList.size());
+            CandidateProcessingDTO candidateProcessingDTO = new CandidateProcessingDTO();
+            candidateProcessingDTO.setProcessedCandidates(candidateList);
+            candidateProcessingDTO.setUnProcessedCandidates(duplicateList);
+            return candidateProcessingDTO;
+        } finally {
+            executor.shutdown();
+        }
+    }
+
 
     public String askPerplexityForSummarizedFeedback(String feedback) throws IOException, InterruptedException {
 

@@ -29,7 +29,7 @@ public class InterviewerPageResponseDTO {
         private String phoneNumber;
         private String dateOfBirth;
         private byte[] fileData;
-        private Integer score;
+        private Double score;
         private String summary;
         private String uniqueId;
         private java.util.List<String> matchedSkills;

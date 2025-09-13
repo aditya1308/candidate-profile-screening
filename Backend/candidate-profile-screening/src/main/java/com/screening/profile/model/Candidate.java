@@ -28,7 +28,7 @@ public class Candidate {
     @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile number is not valid")
     private String phoneNumber;
     private String dateOfBirth;
-    private Integer score;
+    private Double score;
     @Column(name = "summary", length = 1000)
     private String summary;
     @Lob
