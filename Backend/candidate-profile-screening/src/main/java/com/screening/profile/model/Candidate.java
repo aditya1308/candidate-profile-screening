@@ -31,19 +31,19 @@ public class Candidate {
     private Double score;
     @Column(name = "summary", length = 1000)
     private String summary;
-    @Lob
-    @Column(columnDefinition = "LONGBLOB")
+    @Column(name = "file_data", columnDefinition = "BYTEA")
     private byte[] fileData;
 
     private String uniqueId;
 
-    @Column(name = "matched_skills", length = 1000)
+    @Column(columnDefinition = "TEXT")
     private List<String> matchedSkills;
 
     @Enumerated(EnumType.STRING)
     private Status status;
 
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String resumeText;
 
     @Override
