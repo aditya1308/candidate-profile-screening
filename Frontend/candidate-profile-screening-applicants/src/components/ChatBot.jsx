@@ -44,7 +44,7 @@ const ChatBot = () => {
   const formatLinksInMessage = (message) => {
     // Define link mappings for specific URLs
     const linkMappings = {
-      'http://localhost:8092/api/v1/jobs': 'jobs',
+      'https://candidate-profile-screening-tool.onrender.com/api/v1/jobs': 'jobs',
       'http://localhost:5174/about': 'about',
       'http://localhost:5174/contact': 'contact'
     };

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8092/api/v1'
+const API_BASE_URL = 'https://candidate-profile-screening-tool.onrender.com/api/v1'
 
 export const jobService = {
   async getAllJobs() {

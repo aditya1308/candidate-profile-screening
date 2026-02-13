@@ -13,7 +13,7 @@ export const authService = {
       console.log('Login data being sent:', loginData);
       
       // Use direct fetch for authentication to avoid adding auth headers
-      const response = await fetch(`http://localhost:8092/admins/signin`, {
+      const response = await fetch(`https://candidate-profile-screening-tool.onrender.com/admins/signin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export const authService = {
       console.log('Attempting registration with data:', adminData);
       
       // Use direct fetch for registration to avoid adding auth headers
-      const response = await fetch(`http://localhost:8092/admins/signup`, {
+      const response = await fetch(`https://candidate-profile-screening-tool.onrender.com/admins/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ export const authService = {
     try {
       console.log('Attempting to onboard user with data:', onboardData);
       
-      const response = await fetch(`http://localhost:8092/admins/onboard`, {
+      const response = await fetch(`https://candidate-profile-screening-tool.onrender.com/admins/onboard`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ export const authService = {
    */
   async getAllInterviewers() {
     try {
-      const response = await fetch(`http://localhost:8092/admins/interviewers`, {
+      const response = await fetch(`https://candidate-profile-screening-tool.onrender.com/admins/interviewers`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

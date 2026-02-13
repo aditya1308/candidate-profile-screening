@@ -7,7 +7,7 @@ export const interviewerService = {
    */
   async getAllInterviewers() {
     try {
-      const response = await apiRequest(`http://localhost:8092/admins/interviewers`);
+      const response = await apiRequest(`https://candidate-profile-screening-tool.onrender.com/admins/interviewers`);
       return await response.json();
     } catch (error) {
       console.warn('Interviewer API not ready, using mock data:', error.message);
@@ -20,7 +20,7 @@ export const interviewerService = {
    */
   async getPendingInterviews() {
     try {
-      const response = await apiRequest(`http://localhost:8092/interview/my-interviews/pending`);
+      const response = await apiRequest(`https://candidate-profile-screening-tool.onrender.com/interview/my-interviews/pending`);
       return await response.json();
     } catch (error) {
       console.error('Error fetching pending interviews:', error);
@@ -34,7 +34,7 @@ export const interviewerService = {
    */
   async getCompletedInterviews() {
     try {
-      const response = await apiRequest(`http://localhost:8092/interview/my-interviews/completed`);
+      const response = await apiRequest(`https://candidate-profile-screening-tool.onrender.com/interview/my-interviews/completed`);
       return await response.json();
     } catch (error) {
       console.error('Error fetching completed interviews:', error);
@@ -48,7 +48,7 @@ export const interviewerService = {
    */
   async sendInterviewEmail(candidateEmail, subject, body) {
     try {
-      const url = `http://localhost:8092/api/v1/email/schedule-invite`;
+      const url = `https://candidate-profile-screening-tool.onrender.com/api/v1/email/schedule-invite`;
       console.log('Sending interview email:', { candidateEmail, subject });
       
       const requestBody = {

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8092/api/v1';
+const API_BASE_URL = 'https://candidate-profile-screening-tool.onrender.com';
 
 export const applicationService = {
   async submitApplication(applicationData) {
