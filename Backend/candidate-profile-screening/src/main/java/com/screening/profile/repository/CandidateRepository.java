@@ -13,11 +13,10 @@ import java.util.Optional;
 public interface CandidateRepository extends JpaRepository<Candidate, Long> {
     Optional<Candidate> findByUniqueId(String uniqueId);
 
-    @Query(value = "SELECT c.*, i.feedback_summary, " +
-            "i.id, " +
-            "convert_from(i.round1_details, 'UTF8')::jsonb ->> 'feedback' AS round1_feedback, " +
-            "convert_from(i.round2_details, 'UTF8')::jsonb ->> 'feedback' AS round2_feedback, " +
-            "convert_from(i.round3_details, 'UTF8')::jsonb ->> 'feedback' AS round3_feedback " +
+    @Query(value = "SELECT c.*, i.feedback_summary, i.id, " +
+            "i.round1_details ->> 'feedback' AS round1_feedback, " +
+            "i.round2_details ->> 'feedback' AS round2_feedback, " +
+            "i.round3_details ->> 'feedback' AS round3_feedback " +
             "FROM candidate c " +
             "INNER JOIN job_application ja ON ja.candidate_id = c.id AND ja.job_id = :jobId " +
             "LEFT JOIN interview i ON i.job_application_id = ja.id",
