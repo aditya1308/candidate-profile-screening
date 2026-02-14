@@ -25,11 +25,11 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
     List<Object[]> findCandidatesWithInterviewFeedbackByJobId(@Param("jobId") Integer jobId);
     @Query(value = """
     SELECT c.*, 
-           MATCH(c.resume_text) AGAINST (:resume IN NATURAL LANGUAGE MODE) AS relevance
+           ts_rank_cd(to_tsvector('english', c.resume_text), plainto_tsquery('english', :resume)) AS relevance
     FROM candidate c
     INNER JOIN job_application ja ON c.id = ja.candidate_id
     WHERE ja.job_id = :jobId
-      AND MATCH(c.resume_text) AGAINST (:resume IN NATURAL LANGUAGE MODE)
+      AND to_tsvector('english', c.resume_text) @@ plainto_tsquery('english', :resume)
     ORDER BY relevance DESC
     LIMIT 10
 """, nativeQuery = true)
