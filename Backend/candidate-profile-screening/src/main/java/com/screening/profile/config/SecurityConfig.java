@@ -64,21 +64,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        // Admin authentication endpoints
-                        .requestMatchers("/admins/signup", "/admins/signin").permitAll()
-                        // Public job endpoints for applicants
-                        .requestMatchers("GET", "/api/v1/jobs/**").permitAll()
-                        .requestMatchers("POST", "/api/chatbot/message").permitAll()
-                        .requestMatchers("POST", "/api/v1/apply-job").permitAll()
-                        // All other requests require authentication
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/admins/signup", "/admins/signin").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/chatbot/message").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/v1/apply-job").permitAll()
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .anyRequest().authenticated()
+        )
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+       return http.build();
+  }
 
 }
