@@ -14,7 +14,7 @@ export const applicationService = {
       formData.append('jobId', applicationData.jobId);
       formData.append('appliedDate', applicationData.appliedDate);
 
-      const response = await fetch(`${API_BASE_URL}/apply-job`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/apply-job`, {
         method: 'POST',
         body: formData
       });
