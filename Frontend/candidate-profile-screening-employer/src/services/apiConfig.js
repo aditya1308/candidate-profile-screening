@@ -3,7 +3,7 @@ import { authService } from './authService.js';
 // Centralized API configuration
 export const API_CONFIG = {
   BASE_URL: 'http://localhost:8092/api/v1',
-  TIMEOUT: 10000, // 10 seconds
+  TIMEOUT: 30000, // 10 seconds
   RETRY_ATTEMPTS: 3
 };
 
