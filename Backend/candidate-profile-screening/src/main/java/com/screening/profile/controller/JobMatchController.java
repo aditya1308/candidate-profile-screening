@@ -48,7 +48,7 @@ public class JobMatchController {
         candidateReqDTO.setDob(dob);
         candidateReqDTO.setResumeText(PdfParsingUtil.extractText(resumePdf));
 
-        Candidate candidate = this.perplexityService.askPerplexityForPrompt(resumePdf, jobId, candidateReqDTO);
+        Candidate candidate = this.perplexityService.askGeminiForPrompt(resumePdf, jobId, candidateReqDTO);
         if (candidate == null) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
@@ -136,11 +136,9 @@ public class JobMatchController {
 
         long startTime = System.currentTimeMillis();
         log.info("JobController copy, file received");
-        CandidateProcessingDTO candidate = this.perplexityService.askPerplexityAndGetParallelResponse(resumePdf, jobId);
+        CandidateProcessingDTO candidate = this.perplexityService.askGeminiAndGetParallelResponse(resumePdf, jobId);
         if (candidate == null) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body("Error in controller");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error in controller");
         }
         long endTime = System.currentTimeMillis();
         long timeTaken = endTime - startTime;

@@ -65,15 +65,15 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()
                         // Admin authentication endpoints
-                        .requestMatchers("/admins/signup", "/admins/signin").permitAll()
-                        // Public job endpoints for applicants
-                        .requestMatchers("GET", "/api/v1/jobs/**").permitAll()
-                        .requestMatchers("POST", "/api/chatbot/message").permitAll()
-                        .requestMatchers("POST", "/api/v1/apply-job").permitAll()
-                        // All other requests require authentication
-                        .anyRequest().authenticated()
+//                        .requestMatchers("/admins/signup", "/admins/signin").permitAll()
+//                        // Public job endpoints for applicants
+//                        .requestMatchers("GET", "/api/v1/jobs/**").permitAll()
+//                        .requestMatchers("POST", "/api/chatbot/message").permitAll()
+//                        .requestMatchers("POST", "/api/v1/apply-job").permitAll()
+//                        // All other requests require authentication
+//                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

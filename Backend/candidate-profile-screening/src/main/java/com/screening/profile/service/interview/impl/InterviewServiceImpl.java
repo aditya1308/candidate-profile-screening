@@ -200,7 +200,7 @@ public class InterviewServiceImpl implements InterviewService {
         }
         String finalFeedback = feedback1 + System.lineSeparator() + feedback2 + System.lineSeparator() + feedback3;
 
-        return this.perplexityService.askPerplexityForSummarizedFeedback(finalFeedback);
+        return this.perplexityService.askGeminiForSummarizedFeedback(finalFeedback);
     }
 }
 
