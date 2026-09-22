@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Plus, Edit, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Users } from 'lucide-react';
 import { jobService } from '../services/jobService';
+import { candidateService } from '../services/candidateService';
 import { useAuth } from '../context/useAuth';
 import Button3D from './Button3D';
 import JobFormModal from './JobFormModal';
@@ -11,6 +12,7 @@ import useToast from '../hooks/useToast';
 
 const JobList = () => {
   const [jobs, setJobs] = useState([]);
+  const [applicationCounts, setApplicationCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,21 +32,65 @@ const JobList = () => {
   // Role-based access control
   const canManageJobs = user?.role === 'SUPERADMIN' || user?.role === 'HR';
 
-  useEffect(() => {
-    fetchJobs();
+  const fetchApplicationCounts = useCallback(async (jobList) => {
+    const counts = await Promise.all(
+      jobList.map(async (job) => {
+        const fallbackCount = Number(job.applications) || 0;
+
+        try {
+          const candidates = await candidateService.getCandidatesByJobId(job.id);
+          const count = Array.isArray(candidates) ? candidates.length : fallbackCount;
+          return [job.id, count];
+        } catch (error) {
+          return [job.id, fallbackCount];
+        }
+      })
+    );
+
+    setApplicationCounts((prevCounts) => ({
+      ...prevCounts,
+      ...Object.fromEntries(counts)
+    }));
   }, []);
 
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
       const fetchedJobs = await jobService.getAllJobs();
       setJobs(fetchedJobs);
+      await fetchApplicationCounts(fetchedJobs);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchApplicationCounts]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
+
+  useEffect(() => {
+    const handleStorageUpdate = (event) => {
+      if (event.key === 'jobApplicationUpdated') {
+        fetchJobs();
+      }
+    };
+
+    const handleApplicationUpdated = () => {
+      fetchJobs();
+    };
+
+    window.addEventListener('storage', handleStorageUpdate);
+    window.addEventListener('jobApplicationUpdated', handleApplicationUpdated);
+    window.addEventListener('focus', handleApplicationUpdated);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageUpdate);
+      window.removeEventListener('jobApplicationUpdated', handleApplicationUpdated);
+      window.removeEventListener('focus', handleApplicationUpdated);
+    };
+  }, [fetchJobs]);
 
   // CRUD Operations
   const handleCreateJob = () => {
@@ -192,59 +238,73 @@ const JobList = () => {
           )}
 
           {/* Existing Job Cards */}
-          {filteredJobs.map(job => (
-            <div
-              key={job.id}
-              className="flex flex-col h-full p-6 transition-all duration-200 bg-white rounded-lg shadow-lg card hover:-translate-y-1 shadow-gray-400/40 hover:shadow-xl hover:shadow-gray-500/50 relative group"
-            >
-              {/* Action Buttons - Only for HR and SuperAdmin */}
-              {canManageJobs && (
-                <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={(e) => handleEditJob(job, e)}
-                    className="p-2 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
-                    title="Edit Job"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => handleDeleteJob(job, e)}
-                    className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 transition-colors"
-                    title="Delete Job"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+          {filteredJobs.map(job => {
+            const applicationCount = Number(applicationCounts[job.id] ?? job.applications ?? 0);
+            const applicationsLabel = applicationCount === 1 ? 'Application' : 'Applications';
 
-              <Link
-                to={`/jobs/${job.id}`}
-                className="flex flex-col h-full"
+            return (
+              <div
+                key={job.id}
+                className="flex flex-col h-full p-6 transition-all duration-200 bg-white rounded-lg shadow-lg card hover:-translate-y-1 shadow-gray-400/40 hover:shadow-xl hover:shadow-gray-500/50 relative group"
               >
-                <div className="flex-grow">
-                  <div className={`mb-4 ${canManageJobs ? 'pr-16' : ''}`}>
-                    <h3 className="mb-2 text-xl font-semibold text-gray-900 line-clamp-2">{job.title}</h3>
-                  </div>
+                {/* Action Buttons - Only for HR and SuperAdmin */}
+                {canManageJobs && (
+                  <div className="absolute top-4 right-4 flex flex-col items-end gap-2 z-10">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={(e) => handleEditJob(job, e)}
+                        className="p-2 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
+                        title="Edit Job"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteJob(job, e)}
+                        className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 transition-colors"
+                        title="Delete Job"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
 
-                  <div className="mb-4">
-                    <div className="flex items-center mb-3 text-gray-600">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      <span className="text-sm">{job.location || 'Not specified'}</span>
+                    <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700 shadow-sm">
+                      <Users className="w-3.5 h-3.5 text-sg-red" />
+                      <span>{applicationCount} {applicationsLabel}</span>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="mt-auto pt-4">
-                  <Button3D 
-                    buttonColor="bg-sg-red" 
-                    shadowColor="bg-black"
-                  >
-                    View Details
-                  </Button3D>
-                </div>
-              </Link>
-            </div>
-          ))}
+                <Link
+                  to={`/jobs/${job.id}`}
+                  className="flex flex-col h-full"
+                >
+                  <div className="flex-grow">
+                    <div className={`mb-4 ${canManageJobs ? 'pr-24 sm:pr-28' : ''}`}>
+                      <h3 className="mb-2 text-xl font-semibold text-gray-900 line-clamp-2">{job.title}</h3>
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="flex items-center mb-3 text-gray-600">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        <span className="text-sm">{job.location || 'Not specified'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-4">
+                    <Button3D 
+                      buttonColor="bg-sg-red" 
+                      shadowColor="bg-black"
+                    >
+                      View Details
+                    </Button3D>
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
         </div>
 
         {filteredJobs.length === 0 && (
