@@ -5,6 +5,9 @@ import ApplicationForm from './components/ApplicationForm.jsx'
 import AboutPage from './components/AboutPage.jsx'
 import ContactPage from './components/ContactPage.jsx'
 import ChatBot from './components/ChatBot.jsx'
+import CandidateLogin from './components/CandidateLogin.jsx'
+import CandidateDashboard from './components/CandidateDashboard.jsx'
+import { CandidateAuthProvider } from './context/CandidateAuthContext.jsx'
 import { jobService } from './services/jobService.js'
 import { useState, useEffect } from 'react'
 
@@ -117,15 +120,19 @@ const ApplicantRoutes = () => {
 export default function App() {
   return (
     <Router future={{ v7_startTransition: true }}>
-      <Routes>
-        <Route path="/" element={<ApplicantRoutes />} />
-        <Route path="/jobs" element={<ApplicantRoutes />} />
-        <Route path="/apply" element={<ApplicantRoutes />} />
-        <Route path="/about" element={<AboutPage onBackToLanding={() => (window.location.href = '/')} />} />
-        <Route path="/contact" element={<ContactPage onBackToLanding={() => (window.location.href = '/')} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <ChatBot />
+      <CandidateAuthProvider>
+        <Routes>
+          <Route path="/" element={<ApplicantRoutes />} />
+          <Route path="/jobs" element={<ApplicantRoutes />} />
+          <Route path="/apply" element={<ApplicantRoutes />} />
+          <Route path="/candidate/login" element={<CandidateLogin />} />
+          <Route path="/candidate/dashboard" element={<CandidateDashboard />} />
+          <Route path="/about" element={<AboutPage onBackToLanding={() => (window.location.href = '/')} />} />
+          <Route path="/contact" element={<ContactPage onBackToLanding={() => (window.location.href = '/')} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <ChatBot />
+      </CandidateAuthProvider>
     </Router>
   )
 }
