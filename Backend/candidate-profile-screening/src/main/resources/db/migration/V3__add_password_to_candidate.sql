@@ -1,0 +1,1 @@
+ALTER TABLE candidate ADD COLUMN password VARCHAR(255);

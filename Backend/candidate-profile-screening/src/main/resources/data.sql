@@ -58,3 +58,8 @@ INSERT IGNORE INTO authorizedaccess (email, role) VALUES
 INSERT IGNORE INTO admin (email, password, full_name, phone_number, role) VALUES
 ('super.admin@socgen.com', '$2a$10$7dJwZsGpQ6uQh9nbJgTj7uJ1JXcGJ4y0N4XjKk3rQXjU6QwF8q5gq', 'Super Admin', '9123456789', 'SUPERADMIN');
 
+-- Candidate Sample Data (password: password123)
+INSERT IGNORE INTO candidate (name, email, phone_number, password, status) VALUES
+('Candidate User', 'candidate@socgen.com', '9876543210', '$2a$10$MKSL2I7lVhKUtpqJuZ0zBu/ebMjUDwOyjRMCwK/vu0hcAStPcPfKG', 'IN_PROCESS');
+
+
