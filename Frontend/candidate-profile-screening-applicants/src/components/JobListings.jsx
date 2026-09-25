@@ -63,12 +63,16 @@ const JobListings = ({ jobs = [], onJobClick, userType = 'applicant' }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-              <div className="lg:col-span-1">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Browse {filteredJobs.length} {filteredJobs.length === 1 ? 'position' : 'positions'}
+              </div>
+              <div>
                 <Filters jobs={jobs} filters={filters} onChange={setFilters} />
               </div>
+            </div>
 
-              <div className="lg:col-span-3">
+            <div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                   {filteredJobs.map((job) => (
                     <div
@@ -112,7 +116,6 @@ const JobListings = ({ jobs = [], onJobClick, userType = 'applicant' }) => {
                 )}
               </div>
             </div>
-          </div>
         </div>
       </main>
 
