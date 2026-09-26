@@ -31,7 +31,7 @@ export const applicationService = {
           } else if (errorJson.error) {
             errorMessage = errorJson.error;
           }
-        } catch (parseError) {
+        } catch {
           // If it's not JSON, use the raw text
           errorMessage = errorText || `HTTP error! status: ${response.status}`;
         }
