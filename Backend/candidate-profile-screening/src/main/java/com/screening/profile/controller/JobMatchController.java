@@ -122,11 +122,9 @@ public class JobMatchController {
     @GetMapping("/all-candidates/{id}")
     public ResponseEntity<?> getAllCandidatesByJobId(@PathVariable("id") Long id) throws JsonProcessingException {
         List<CandidateInterviewDTO> candidate = this.candidateService.getCandidatesWithInterviewFeedbackByJobId(id);
-        if(candidate == null || candidate.isEmpty())
+        if(candidate == null)
         {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body("No candidate found");
+            candidate = java.util.Collections.emptyList();
         }
         return ResponseEntity.status(HttpStatus.OK).body(candidate);
     }
