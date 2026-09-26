@@ -11,6 +11,7 @@ const CandidateDashboard = () => {
   const { user, logout, isAuthenticated } = useCandidateAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [applications, setApplications] = useState([]);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -22,6 +23,11 @@ const CandidateDashboard = () => {
       try {
         const data = await candidateAuthService.getProfile();
         setProfile(data);
+        const candidateId = data?.id || user?.id;
+        if (candidateId) {
+          const apps = await candidateAuthService.getApplications(candidateId);
+          setApplications(apps);
+        }
       } catch (err) {
         console.warn('Could not fetch detailed profile from server, using local user data:', err);
         setProfile(user);
@@ -92,7 +98,6 @@ const CandidateDashboard = () => {
                     <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                       {profile?.name || user?.name || 'Candidate'}
                     </h1>
-                    {getStatusBadge(profile?.status)}
                   </div>
                   <p className="text-sm text-gray-500 mt-0.5">
                     {profile?.email || user?.email}
@@ -199,6 +204,37 @@ const CandidateDashboard = () => {
                 )}
               </div>
             </div>
+            
+            {/* Applied Jobs Section */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 mb-4 flex items-center">
+                <Briefcase className="w-5 h-5 text-sg-red mr-2" /> My Applications
+              </h2>
+              {applications.length > 0 ? (
+                <div className="space-y-4">
+                  {applications.map((app) => (
+                    <div key={app.id} className="p-4 border border-gray-100 rounded-xl bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div>
+                        <h3 className="font-bold text-gray-900">{app.job?.title || 'Unknown Job'}</h3>
+                        <p className="text-sm text-gray-500">{app.job?.location || 'Unknown Location'}</p>
+                        <p className="text-xs text-gray-400 mt-1">Applied on: {new Date(app.applicationDate).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        {getStatusBadge(app.candidate?.status)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>You haven't applied to any jobs yet.</p>
+                  <button onClick={() => navigate('/jobs')} className="mt-3 text-sg-red hover:underline text-sm font-semibold">
+                    Browse Jobs
+                  </button>
+                </div>
+              )}
+            </div>
+            
           </div>
         )}
       </main>

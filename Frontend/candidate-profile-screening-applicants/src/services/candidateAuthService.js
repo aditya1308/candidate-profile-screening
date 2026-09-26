@@ -218,6 +218,17 @@ export const candidateAuthService = {
     return candidateStorageService.getUser();
   },
 
+  async getApplications(candidateId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/applications/candidate/${candidateId}`);
+      if (!response.ok) throw new Error('Failed to fetch applications');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching applications:', error);
+      throw error;
+    }
+  },
+
   logout() {
     candidateStorageService.clear();
   }

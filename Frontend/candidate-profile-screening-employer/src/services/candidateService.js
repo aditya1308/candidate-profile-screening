@@ -11,6 +11,10 @@ export const candidateService = {
       const response = await apiRequest(`${API_CONFIG.BASE_URL}/all-candidates/${jobId}`);
       const candidates = await response.json();
       
+      if (!Array.isArray(candidates)) {
+        return [];
+      }
+
       // Transform the data to include resumeUrl and appliedDate
       return candidates.map(candidate => ({
         ...candidate,
@@ -18,6 +22,9 @@ export const candidateService = {
         appliedDate: candidate.applicationDate || new Date().toISOString()
       }));
     } catch (error) {
+      if (error && (error.status === 404 || (error.message && error.message.toLowerCase().includes('not found')))) {
+        return [];
+      }
       throw handleApiError(error, 'fetching candidates by job ID');
     }
   },

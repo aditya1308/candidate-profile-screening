@@ -13,8 +13,9 @@ import java.util.Optional;
 public interface CandidateRepository extends JpaRepository<Candidate, Long> {
     Optional<Candidate> findByUniqueId(String uniqueId);
 
-    @Query(value = "SELECT c.*, i.feedback_summary, " +
-            "i.id," +
+    @Query(value = "SELECT c.id, c.date_of_birth, c.email, c.file_data, c.matched_skills, c.name, c.phone_number, c.resume_text, c.score, c.status, c.summary, c.unique_id, " +
+            "i.feedback_summary, " +
+            "i.id, " +
             "i.round1_details->>'$.feedback' AS round1_feedback, " +
             "i.round2_details->>'$.feedback' AS round2_feedback, " +
             "i.round3_details->>'$.feedback' AS round3_feedback " +
