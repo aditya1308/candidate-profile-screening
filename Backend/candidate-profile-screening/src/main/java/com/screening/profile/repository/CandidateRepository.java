@@ -38,4 +38,9 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
             @Param("jobId") Long jobId
     );
     List<Optional<Candidate>> findByEmail(String email);
+
+    @Query("SELECT c FROM Candidate c WHERE c.email = :identifier OR c.name = :identifier OR c.uniqueId = :identifier ORDER BY c.id DESC")
+    List<Candidate> findByIdentifier(@Param("identifier") String identifier);
+
+    Optional<Candidate> findFirstByEmailOrderByIdDesc(String email);
 }

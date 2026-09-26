@@ -46,6 +46,8 @@ public class Candidate {
     @Lob
     private String resumeText;
 
+    private String password;
+
     @Override
     public String toString() {
         return "Candidate{" +
