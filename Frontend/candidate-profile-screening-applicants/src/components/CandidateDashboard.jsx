@@ -113,13 +113,7 @@ const CandidateDashboard = () => {
                   <Briefcase className="w-4 h-4 mr-2" />
                   View Open Jobs
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2.5 border border-gray-200 text-gray-600 hover:text-red-600 hover:bg-red-50 font-medium rounded-xl text-sm transition-colors flex items-center"
-                  title="Sign Out"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
+                
               </div>
             </div>
 
@@ -146,82 +140,61 @@ const CandidateDashboard = () => {
                 </div>
               </div>
 
-              {/* Match Score & Skills */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 md:col-span-2 space-y-4">
-                <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center">
-                  <Award className="w-5 h-5 text-sg-red mr-2" /> Application Highlights
-                </h2>
-                {profile?.score !== undefined && profile?.score !== null && (
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-semibold text-gray-600">Profile Match Score</span>
-                      <span className="text-sm font-bold text-sg-red">{profile.score}%</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2.5">
-                      <div
-                        className="bg-sg-red h-2.5 rounded-full"
-                        style={{ width: `${Math.min(Math.max(profile.score, 0), 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-
-                {profile?.summary && (
-                  <div>
-                    <span className="text-gray-500 block text-xs font-medium mb-1">AI Screening Summary</span>
-                    <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                      {profile.summary}
-                    </p>
-                  </div>
-                )}
-
-                {profile?.matchedSkills && profile.matchedSkills.length > 0 && (
-                  <div>
-                    <span className="text-gray-500 block text-xs font-medium mb-2">Matched Skills</span>
-                    <div className="flex flex-wrap gap-2">
-                      {profile.matchedSkills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="px-2.5 py-1 bg-red-50 text-sg-red border border-red-200 rounded-lg text-xs font-medium"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {!profile?.summary && (!profile?.matchedSkills || profile.matchedSkills.length === 0) && (
-                  <div className="text-center py-6 text-gray-500">
-                    <p className="text-sm">Ready to apply for jobs? Explore open roles and submit your resume.</p>
-                    <button
-                      onClick={() => navigate('/jobs')}
-                      className="mt-3 inline-flex items-center text-sg-red hover:underline text-sm font-semibold"
-                    >
-                      Browse Available Positions <ArrowRight className="w-4 h-4 ml-1" />
-                    </button>
-                  </div>
-                )}
               </div>
-            </div>
-            
             {/* Applied Jobs Section */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 md:col-span-2">
               <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 mb-4 flex items-center">
                 <Briefcase className="w-5 h-5 text-sg-red mr-2" /> My Applications
               </h2>
               {applications.length > 0 ? (
                 <div className="space-y-4">
                   {applications.map((app) => (
-                    <div key={app.id} className="p-4 border border-gray-100 rounded-xl bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div>
-                        <h3 className="font-bold text-gray-900">{app.job?.title || 'Unknown Job'}</h3>
-                        <p className="text-sm text-gray-500">{app.job?.location || 'Unknown Location'}</p>
-                        <p className="text-xs text-gray-400 mt-1">Applied on: {new Date(app.applicationDate).toLocaleDateString()}</p>
+                    <div key={app.id} className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm flex flex-col gap-4 mb-4">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-50 pb-3">
+                        <div>
+                          <h3 className="font-bold text-gray-900">{app.job?.title || 'Unknown Job'}</h3>
+                          <p className="text-sm text-gray-500">{app.job?.location || 'Unknown Location'}</p>
+                          <p className="text-xs text-gray-400 mt-1">Applied on: {new Date(app.applicationDate).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          {getStatusBadge(app.candidate?.status)}
+                        </div>
                       </div>
-                      <div>
-                        {getStatusBadge(app.candidate?.status)}
-                      </div>
+                      
+                      {app.candidate?.summary && (
+                        <div className="mt-2">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs font-semibold text-gray-600">Profile Match Score</span>
+                            <span className="text-sm font-bold text-sg-red">{app.candidate.score}%</span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
+                            <div
+                              className="bg-sg-red h-2 rounded-full"
+                              style={{ width: `${Math.min(Math.max(app.candidate.score || 0, 0), 100)}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-gray-500 block text-xs font-medium mb-1">AI Screening Summary</span>
+                          <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            {app.candidate.summary}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {app.candidate?.matchedSkills && app.candidate.matchedSkills.length > 0 && (
+                        <div className="mt-2">
+                          <span className="text-gray-500 block text-xs font-medium mb-2">Matched Skills</span>
+                          <div className="flex flex-wrap gap-2">
+                            {app.candidate.matchedSkills.map((skill, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-red-50 text-sg-red border border-red-100 rounded-lg text-xs font-medium"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
