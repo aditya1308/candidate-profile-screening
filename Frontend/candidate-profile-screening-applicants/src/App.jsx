@@ -55,7 +55,27 @@ const ApplicantRoutes = () => {
   const handleExploreClick = () => setCurrentPage('jobs')
   const handleJobClick = (job) => { setSelectedJob(job); setCurrentPage('apply') }
   const handleBackToJobs = () => { setCurrentPage('jobs'); setSelectedJob(null) }
-  const handleApplicationSubmit = (application) => { setSubmittedApplication(application); setCurrentPage('success') }
+  const handleApplicationSubmit = async (application) => {
+    setSubmittedApplication(application)
+    const applicationRefresh = {
+      jobId: Number(application?.jobId ?? selectedJob?.id ?? 0),
+      timestamp: Date.now()
+    }
+
+    try {
+      localStorage.setItem('jobApplicationUpdated', JSON.stringify(applicationRefresh))
+      window.dispatchEvent(new CustomEvent('jobApplicationUpdated', { detail: applicationRefresh }))
+    } catch (error) {
+      console.warn('Could not notify employer dashboard of new application:', error)
+    }
+
+    setCurrentPage('success')
+    try {
+      await fetchJobs()
+    } catch (error) {
+      console.error('Error refreshing jobs after application submission:', error)
+    }
+  }
   const handleBackToLanding = () => { setCurrentPage('landing'); setSelectedJob(null); setSubmittedApplication(null) }
 
   if (currentPage === 'landing') return <LandingPage onExploreClick={handleExploreClick} />

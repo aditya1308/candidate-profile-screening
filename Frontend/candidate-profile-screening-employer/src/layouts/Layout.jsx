@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { useState, useRef, useEffect } from 'react';
 import SGLogo from '../assets/SG.svg';
@@ -53,15 +53,30 @@ const Header = () => {
     };
   }, []);
 
+  const navLinkClasses = ({ isActive }) =>
+    `px-4 py-2 text-sm font-medium rounded-full transition-colors duration-200 ${
+      isActive
+        ? 'bg-sg-red text-white shadow-sm'
+        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+    }`;
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-lg border-accent-200">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center">
-          <Link to="/dashboard">
+        <div className="flex items-center gap-6">
+          <Link to="/job-openings">
             <img src={SGLogo} alt="Societe Generale" className="w-auto h-8 transition-opacity duration-200 cursor-pointer hover:opacity-80" />
           </Link>
+          <nav className="flex items-center gap-2">
+            <NavLink to="/job-openings" className={navLinkClasses}>
+              Job Openings
+            </NavLink>
+            <NavLink to="/dashboard" className={navLinkClasses}>
+              Dashboard
+            </NavLink>
+          </nav>
           {user?.role === 'INTERVIEWER' && (
-            <div className="ml-4 text-sm font-medium text-gray-600">
+            <div className="hidden text-sm font-medium text-gray-600 md:block">
               Interviewer Portal
             </div>
           )}

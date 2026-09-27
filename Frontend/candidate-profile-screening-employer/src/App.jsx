@@ -8,6 +8,7 @@ import SuperAdminPage from './pages/SuperAdminPage';
 import HRJobDetailsPage from './pages/HRJobDetailsPage';
 import InterviewerJobDetailsPage from './pages/InterviewerJobDetailsPage';
 import InterviewerDashboardPage from './pages/InterviewerDashboardPage';
+import JobList from './components/JobList';
 import { useAuth } from './context/useAuth';
 import './App.css';
 
@@ -42,6 +43,14 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
+            path="/job-openings"
+            element={
+              <ProtectedLayout>
+                <JobList />
+              </ProtectedLayout>
+            }
+          />
+          <Route
             path="/dashboard"
             element={
               <ProtectedLayout>
@@ -65,7 +74,7 @@ function App() {
               </ProtectedLayout>
             }
           />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/job-openings" replace />} />
         </Routes>
       </AuthProvider>
     </Router>
