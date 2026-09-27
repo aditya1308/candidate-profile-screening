@@ -1,183 +1,370 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-const EmailSchedulingModal = ({ 
-  show, 
-  onClose, 
-  onSend, 
-  candidateName, 
-  candidateEmail, 
-  round 
+const escapeHtml = (value = '') =>
+  value.replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  })[character]);
+
+const formatInterviewDate = (date, time) => {
+  if (!date || !time) return 'To be confirmed';
+
+  return new Intl.DateTimeFormat('en-IN', {
+    dateStyle: 'full',
+    timeStyle: 'short'
+  }).format(new Date(`${date}T${time}`));
+};
+
+const EmailSchedulingModal = ({
+  show,
+  onClose,
+  onSend,
+  candidateName,
+  candidateEmail,
+  round
 }) => {
   const [subject, setSubject] = useState('');
-  const [body, setBody] = useState('');
+  const [interviewDate, setInterviewDate] = useState('');
+  const [interviewTime, setInterviewTime] = useState('');
+  const [duration, setDuration] = useState('60');
+  const [interviewMode, setInterviewMode] = useState('Online');
+  const [location, setLocation] = useState('');
+  const [meetingLink, setMeetingLink] = useState('');
+  const [additionalNotes, setAdditionalNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Default email template
-  const defaultTemplate = {
-    subject: `Interview Invitation - Round ${round}`,
-    body: `Dear ${candidateName},
+  const minimumDate = new Date().toISOString().split('T')[0];
 
-We are pleased to invite you for Round ${round} of the interview process.
+  const formattedInterviewDate = useMemo(
+    () => formatInterviewDate(interviewDate, interviewTime),
+    [interviewDate, interviewTime]
+  );
 
-Please find the interview details below:
-- Round: ${round}
-- Date: [To be scheduled]
-- Duration: [To be confirmed]
+  const generatedBody = useMemo(() => {
+    const safeName = escapeHtml(candidateName);
+    const safeMode = escapeHtml(interviewMode);
+    const safeLocation = escapeHtml(location);
+    const safeMeetingLink = escapeHtml(meetingLink);
+    const safeNotes = escapeHtml(additionalNotes);
 
-We will contact you shortly to schedule the exact date and time.
+    return `
+      <div style="font-family: Arial, sans-serif; color: #222; line-height: 1.6; max-width: 680px; margin: auto; border: 1px solid #dddddd;">
+        <div style="background: #e30613; padding: 22px 28px;">
+          <div style="color: #ffffff; font-size: 22px; font-weight: bold;">
+            SOCIETE GENERALE
+          </div>
+          <div style="color: #ffffff; margin-top: 6px; font-size: 14px;">
+            Candidate Recruitment
+          </div>
+        </div>
 
-Best regards,
-HR Team`
-  };
+        <div style="padding: 28px;">
+          <p>Dear ${safeName},</p>
 
-  // Set default email template based on round
-  React.useEffect(() => {
-    if (round) {
-      setSubject(defaultTemplate.subject);
-      setBody(defaultTemplate.body);
-    }
-  }, [round, candidateName]);
+          <p>
+            Thank you for your interest in Societe Generale.
+            We are pleased to invite you to the next stage of our interview process.
+          </p>
+
+          <h3 style="color: #e30613; border-bottom: 2px solid #e30613; padding-bottom: 8px;">
+            Interview Details
+          </h3>
+
+          <table style="width: 100%; border-collapse: collapse;">
+            <tbody>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; width: 38%;">Interview round</td>
+                <td style="padding: 8px 0;">Round ${escapeHtml(String(round))}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold;">Date and time</td>
+                <td style="padding: 8px 0;">${escapeHtml(formattedInterviewDate)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold;">Duration</td>
+                <td style="padding: 8px 0;">${escapeHtml(duration)} minutes</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold;">Interview mode</td>
+                <td style="padding: 8px 0;">${safeMode}</td>
+              </tr>
+              ${
+                location
+                  ? `<tr>
+                      <td style="padding: 8px 0; font-weight: bold;">Location</td>
+                      <td style="padding: 8px 0;">${safeLocation}</td>
+                    </tr>`
+                  : ''
+              }
+              ${
+                meetingLink
+                  ? `<tr>
+                      <td style="padding: 8px 0; font-weight: bold;">Meeting link</td>
+                      <td style="padding: 8px 0;">
+                        <a href="${safeMeetingLink}" style="color: #e30613;">
+                          Join interview
+                        </a>
+                      </td>
+                    </tr>`
+                  : ''
+              }
+            </tbody>
+          </table>
+
+          ${
+            additionalNotes
+              ? `<p style="margin-top: 22px;">
+                  <strong>Additional information:</strong><br />
+                  ${safeNotes}
+                </p>`
+              : ''
+          }
+
+          
+
+          <p>
+            Best regards,<br />
+            <strong>Talent Acquisition Team</strong><br />
+            Societe Generale
+          </p>
+        </div>
+
+        <div style="background: #f4f4f4; padding: 14px 28px; color: #666; font-size: 12px;">
+          This is an automated interview invitation. Please do not forward this email.
+        </div>
+      </div>
+    `;
+  }, [
+    candidateName,
+    round,
+    formattedInterviewDate,
+    duration,
+    interviewMode,
+    location,
+    meetingLink,
+    additionalNotes
+  ]);
+
+  useEffect(() => {
+    if (!show) return;
+
+    setSubject(
+      `[Societe Generale] Interview Invitation - Round ${round}`
+    );
+    setInterviewDate('');
+    setInterviewTime('');
+    setDuration('60');
+    setInterviewMode('Online');
+    setLocation('');
+    setMeetingLink('');
+    setAdditionalNotes('');
+  }, [show, round]);
 
   const handleSend = async () => {
-    if (!subject.trim() || !body.trim()) {
-      alert('Please fill in both subject and body');
+    if (!interviewDate || !interviewTime) {
+      alert('Please select an interview date and time.');
+      return;
+    }
+
+    if (interviewMode === 'Online' && !meetingLink.trim()) {
+      alert('Please provide the online meeting link.');
+      return;
+    }
+
+    if (interviewMode === 'In-person' && !location.trim()) {
+      alert('Please provide the interview location.');
       return;
     }
 
     setLoading(true);
+
     try {
-      console.log('Sending email with subject:', subject);
-      await onSend(subject, body);
-      console.log('Email sent successfully!');
-      // Reset form
-      setSubject('');
-      setBody('');
+      await onSend(subject.trim(), generatedBody);
+      onClose();
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('Error sending interview email:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setSubject('');
-    setBody('');
-    onClose();
-  };
-
-  console.log('EmailSchedulingModal render:', { show, candidateName, candidateEmail, round });
   if (!show) return null;
 
-  const modalContent = (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" style={{ zIndex: 99999 }}>
-      <div className="bg-white rounded-xl w-full max-w-2xl mx-auto overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-bold text-white">
-                Schedule Interview Email
-              </h2>
-              <p className="text-blue-100 text-sm mt-1">
-                Round {round} • {candidateName}
-              </p>
-            </div>
-            <button
-              onClick={handleClose}
-              className="text-white hover:text-blue-100 text-2xl font-bold transition-colors"
-            >
-              ×
-            </button>
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4">
+      <div className="max-h-[95vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white">
+        <div className="flex items-center justify-between bg-[#e30613] px-6 py-5 text-white">
+          <div>
+            <h2 className="text-xl font-bold">
+              Schedule Interview Invitation
+            </h2>
+            <p className="mt-1 text-sm text-red-100">
+              {candidateName} | Round {round}
+            </p>
           </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-2xl text-white hover:text-red-100"
+            aria-label="Close modal"
+          >
+            ×
+          </button>
         </div>
 
-                 {/* Content */}
-         <div className="p-4 space-y-4">
-           {/* Candidate Info Card */}
-           <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-3 rounded-lg border border-blue-100">
-             <div className="flex items-center space-x-3">
-               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                 <span className="text-white font-bold text-base">
-                   {candidateName.charAt(0).toUpperCase()}
-                 </span>
-               </div>
-               <div>
-                 <h3 className="font-semibold text-gray-800 text-sm">{candidateName}</h3>
-                 <p className="text-gray-600 text-xs">{candidateEmail}</p>
-                 <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1">
-                   Round {round}
-                 </div>
-               </div>
-             </div>
-           </div>
+        <div className="grid gap-6 p-6 lg:grid-cols-2">
+          <section className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-semibold">
+                Candidate email
+              </label>
+              <input
+                value={candidateEmail}
+                readOnly
+                className="w-full rounded border bg-gray-100 px-3 py-2"
+              />
+            </div>
 
-           {/* Email Form */}
-           <div className="space-y-3">
-                         {/* Subject Field */}
-             <div>
-               <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-1">
-                 Email Subject *
-               </label>
-               <input
-                 type="text"
-                 id="subject"
-                 value={subject}
-                 onChange={(e) => setSubject(e.target.value)}
-                 placeholder="Enter email subject..."
-                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-               />
-             </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold">
+                Email subject
+              </label>
+              <input
+                value={subject}
+                onChange={(event) => setSubject(event.target.value)}
+                className="w-full rounded border px-3 py-2 focus:border-[#e30613] focus:outline-none"
+              />
+            </div>
 
-             {/* Body Field */}
-             <div>
-               <label htmlFor="body" className="block text-sm font-semibold text-gray-700 mb-1">
-                 Email Body *
-               </label>
-               <textarea
-                 id="body"
-                 value={body}
-                 onChange={(e) => setBody(e.target.value)}
-                 placeholder="Enter email body..."
-                 rows={6}
-                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical transition-all duration-200"
-               />
-             </div>
-          </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Interview date
+                </label>
+                <input
+                  type="date"
+                  min={minimumDate}
+                  value={interviewDate}
+                  onChange={(event) => setInterviewDate(event.target.value)}
+                  className="w-full rounded border px-3 py-2"
+                />
+              </div>
 
-                                {/* Action Buttons */}
-           <div className="flex justify-end space-x-3 pt-4 pb-3 border-t border-gray-200">
-             <button
-               onClick={handleClose}
-               disabled={loading}
-               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 transition-all duration-200 font-medium"
-             >
-               Cancel
-             </button>
-             <button
-               onClick={handleSend}
-               disabled={loading || !subject.trim() || !body.trim()}
-               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg"
-             >
-              {loading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Sending...
-                </span>
-              ) : (
-                'Send Email'
-              )}
-            </button>
-          </div>
-                 </div>
-       </div>
-     </div>
-   );
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Interview time
+                </label>
+                <input
+                  type="time"
+                  value={interviewTime}
+                  onChange={(event) => setInterviewTime(event.target.value)}
+                  className="w-full rounded border px-3 py-2"
+                />
+              </div>
+            </div>
 
-  return createPortal(modalContent, document.body);
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Duration
+                </label>
+                <select
+                  value={duration}
+                  onChange={(event) => setDuration(event.target.value)}
+                  className="w-full rounded border px-3 py-2"
+                >
+                  <option value="30">30 minutes</option>
+                  <option value="45">45 minutes</option>
+                  <option value="60">60 minutes</option>
+                  <option value="90">90 minutes</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold">
+                  Interview mode
+                </label>
+                <select
+                  value={interviewMode}
+                  onChange={(event) => setInterviewMode(event.target.value)}
+                  className="w-full rounded border px-3 py-2"
+                >
+                  <option value="Online">Online</option>
+                  <option value="In-person">In-person</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
+              </div>
+            </div>
+
+            {interviewMode !== 'Online' && (
+              <input
+                placeholder="Office location"
+                value={location}
+                onChange={(event) => setLocation(event.target.value)}
+                className="w-full rounded border px-3 py-2"
+              />
+            )}
+
+            {interviewMode !== 'In-person' && (
+              <input
+                type="url"
+                placeholder="Online meeting link"
+                value={meetingLink}
+                onChange={(event) => setMeetingLink(event.target.value)}
+                className="w-full rounded border px-3 py-2"
+              />
+            )}
+
+            <textarea
+              rows={4}
+              placeholder="Additional notes for the candidate"
+              value={additionalNotes}
+              onChange={(event) => setAdditionalNotes(event.target.value)}
+              className="w-full resize-y rounded border px-3 py-2"
+            />
+
+            <div className="flex justify-end gap-3 border-t pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                className="rounded border px-4 py-2 text-gray-700"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSend}
+                disabled={loading || !subject.trim()}
+                className="rounded bg-[#e30613] px-5 py-2 font-semibold text-white hover:bg-[#b80510] disabled:opacity-50"
+              >
+                {loading ? 'Sending...' : 'Send Invitation'}
+              </button>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="mb-2 text-sm font-semibold text-gray-700">
+              Email preview
+            </h3>
+
+            <iframe
+              title="Interview invitation preview"
+              srcDoc={generatedBody}
+              className="h-[620px] w-full rounded border bg-white"
+            />
+          </section>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
 };
 
 export default EmailSchedulingModal;
