@@ -21,11 +21,13 @@ public class JobApplication {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "job_id", nullable = false, foreignKey = @ForeignKey(name = "fk_job_application_job"))
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Job job;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "candidate_id", referencedColumnName = "id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_job_application_candidate_id"))
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "fileData", "resumeText", "password"})
     private Candidate candidate;
 
     @Column(name = "application_date", nullable = false)

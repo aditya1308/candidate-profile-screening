@@ -13,8 +13,9 @@ import java.util.Optional;
 public interface CandidateRepository extends JpaRepository<Candidate, Long> {
     Optional<Candidate> findByUniqueId(String uniqueId);
 
-    @Query(value = "SELECT c.*, i.feedback_summary, " +
-            "i.id," +
+    @Query(value = "SELECT c.id, c.date_of_birth, c.email, c.file_data, c.matched_skills, c.name, c.phone_number, c.resume_text, c.score, c.status, c.summary, c.unique_id, " +
+            "i.feedback_summary, " +
+            "i.id, " +
             "i.round1_details->>'$.feedback' AS round1_feedback, " +
             "i.round2_details->>'$.feedback' AS round2_feedback, " +
             "i.round3_details->>'$.feedback' AS round3_feedback " +
@@ -38,4 +39,9 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
             @Param("jobId") Long jobId
     );
     List<Optional<Candidate>> findByEmail(String email);
+
+    @Query("SELECT c FROM Candidate c WHERE c.email = :identifier OR c.name = :identifier OR c.uniqueId = :identifier ORDER BY c.id DESC")
+    List<Candidate> findByIdentifier(@Param("identifier") String identifier);
+
+    Optional<Candidate> findFirstByEmailOrderByIdDesc(String email);
 }

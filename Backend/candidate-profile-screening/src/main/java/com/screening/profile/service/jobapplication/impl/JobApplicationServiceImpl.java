@@ -57,7 +57,12 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     public List<JobApplication> getApplicationsByCandidate(Long candidateId) {
         Candidate candidate = candidateRepository.findById(candidateId)
                 .orElseThrow(() -> new ServiceException("CANDIDATE_NOT_FOUND", "Candidate not found"));
-        return jobApplicationRepository.findByCandidate(candidate);
+        List<Candidate> candidatesWithSameEmail = candidateRepository.findByIdentifier(candidate.getEmail());
+        List<JobApplication> allApplications = new java.util.ArrayList<>();
+        for (Candidate c : candidatesWithSameEmail) {
+            allApplications.addAll(jobApplicationRepository.findByCandidate(c));
+        }
+        return allApplications;
     }
     
     @Override
