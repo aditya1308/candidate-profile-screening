@@ -72,14 +72,9 @@ const Header = () => {
               Job Openings
             </NavLink>
             <NavLink to="/dashboard" className={navLinkClasses}>
-              Dashboard
+              {user?.role === 'INTERVIEWER' ? 'My Interviews' : 'Dashboard'}
             </NavLink>
           </nav>
-          {user?.role === 'INTERVIEWER' && (
-            <div className="hidden text-sm font-medium text-gray-600 md:block">
-              Interviewer Portal
-            </div>
-          )}
         </div>
         {user && (
           <div className="relative" ref={dropdownRef}>
