@@ -136,24 +136,31 @@ public class CandidateServiceImpl implements CandidateService {
             log.info("in update method");
             if(Status.HIRED.equals(status)){
                 log.info("Hired!!");
-                String body = "Dear " + newCandidate.getName()+ ",\n\n" +
-                        "Congratulations! 🎉\n\n" +
-                        "We are pleased to inform you that you have been selected for the position at our company.\n" +
-                        "Our HR team will be in touch with you shortly to discuss the next steps in the hiring process.\n\n" +
-                        "We look forward to working with you!\n\n" +
-                        "Best regards,\nHR Team";
+                String body = buildStatusEmail(
+                    newCandidate.getName(),
+                    "Congratulations!",
+                    "We are pleased to inform you that you have been selected for the position at Societe Generale.",
+                    "Our Talent Acquisition team will be in touch with you shortly to discuss the next steps in the hiring process.",
+                    "We look forward to welcoming you to Societe Generale.");
 
-                emailService.sendInterviewMail(newCandidate.getEmail(), "Congratulations! You're Selected", body);
+                emailService.sendInterviewMail(
+                    newCandidate.getEmail(),
+                    "[Societe Generale] Congratulations! You are selected",
+                    body);
             }
             else if(Status.REJECTED.equals(status)){
                 log.info("Rejected!!");
-                String body = "Dear " + newCandidate.getName() + ",\n\n" +
-                        "Thank you for applying at Societe Generale.\n" +
-                        "After careful consideration, we regret to inform you that you have not been selected for the position.\n\n" +
-                        "We appreciate your interest and encourage you to apply for future opportunities.\n\n" +
-                        "Best regards,\nHR Team";
+                String body = buildStatusEmail(
+                    newCandidate.getName(),
+                    "Application update",
+                    "Thank you for applying at Societe Generale.",
+                    "After careful consideration, we regret to inform you that you have not been selected for this position.",
+                    "We appreciate your interest and encourage you to apply for future opportunities.");
 
-                emailService.sendInterviewMail(newCandidate.getEmail(), "Thank you for your interest", body);
+                emailService.sendInterviewMail(
+                    newCandidate.getEmail(),
+                    "[Societe Generale] Update on your application",
+                    body);
 
             }
 
@@ -162,6 +169,47 @@ public class CandidateServiceImpl implements CandidateService {
         }
         return false;
     }
+
+        private String buildStatusEmail(
+                        String candidateName,
+                        String heading,
+                        String firstParagraph,
+                        String secondParagraph,
+                        String closingParagraph) {
+                return """
+                                <div style="font-family: Arial, sans-serif; color: #222; line-height: 1.6; max-width: 680px; margin: auto; border: 1px solid #dddddd;">
+                                    <div style="background: #e30613; padding: 22px 28px;">
+                                        <div style="color: #ffffff; font-size: 22px; font-weight: bold;">SOCIETE GENERALE</div>
+                                        <div style="color: #ffffff; margin-top: 6px; font-size: 14px;">Candidate Recruitment</div>
+                                    </div>
+                                    <div style="padding: 28px;">
+                                        <p>Dear %s,</p>
+                                        <h2 style="color: #e30613;">%s</h2>
+                                        <p>%s</p>
+                                        <p>%s</p>
+                                        <p>%s</p>
+                                        <p>Best regards,<br><strong>Talent Acquisition Team</strong><br>Societe Generale</p>
+                                    </div>
+                                    <div style="background: #f4f4f4; padding: 14px 28px; color: #666; font-size: 12px;">
+                                        This is an automated recruitment email. Please do not forward this email.
+                                    </div>
+                                </div>
+                                """.formatted(
+                                escapeHtml(candidateName),
+                                escapeHtml(heading),
+                                escapeHtml(firstParagraph),
+                                escapeHtml(secondParagraph),
+                                escapeHtml(closingParagraph));
+        }
+
+        private String escapeHtml(String value) {
+                return value == null ? "" : value
+                                .replace("&", "&amp;")
+                                .replace("<", "&lt;")
+                                .replace(">", "&gt;")
+                                .replace("\"", "&quot;")
+                                .replace("'", "&#039;");
+        }
 
     @Override
     public List<CandidateInterviewDTO> getCandidatesWithInterviewFeedbackByJobId(Long joId) throws JsonProcessingException {
