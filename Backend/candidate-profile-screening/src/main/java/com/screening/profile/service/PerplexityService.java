@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.screening.profile.dto.CandidateProcessingDTO;
 import com.screening.profile.dto.CandidateReqDTO;
+import com.screening.profile.dto.ResumeAutofillDTO;
 import com.screening.profile.exception.ServiceException;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.model.Job;
@@ -172,6 +173,105 @@ public class PerplexityService {
         }
     }
 
+    public ResumeAutofillDTO extractResumeDetails(String resumeText, Long jobId) throws Exception {
+        if (!enabled || apiKey == null || apiKey.isBlank()) {
+            throw new ServiceException("Resume extraction is not configured", "AI_EXTRACTION_UNAVAILABLE");
+        }
+
+        String jobDescriptionWithSkills = "";
+        Optional<Job> job = jobService.getJob(Math.toIntExact(jobId));
+        if (job.isPresent()) {
+            jobDescriptionWithSkills = job.get().getDescription()
+                    + " Required Skills : " + job.get().getRequiredSkills();
+        }
+
+        String instruction = "You are an AI resume information extraction assistant. Extract the candidate's "
+                + "full name, date of birth and phone number from the resume. Return ONLY a valid JSON object "
+                + "with keys name, dateOfBirth (formatted YYYY-MM-DD) and phoneNumber. Use null for any value "
+                + "that is not explicitly present; do not infer missing information.";
+        String input = instruction + "\n\nResume:\n" + resumeText
+                + "\n\nJob Description:\n" + jobDescriptionWithSkills;
+        String generatedJson = requestGeminiText(input, HttpClient.newHttpClient());
+        JsonNode node = objectMapper.readTree(generatedJson);
+
+        String name = textOrNull(node, "name");
+        String dateOfBirth = textOrNull(node, "dateOfBirth");
+        if (dateOfBirth == null) dateOfBirth = textOrNull(node, "dob");
+        if (dateOfBirth != null) {
+            try {
+                java.time.LocalDate parsedDate = java.time.LocalDate.parse(dateOfBirth);
+                if (parsedDate.getYear() < 1950 || parsedDate.isAfter(java.time.LocalDate.now())) {
+                    dateOfBirth = null;
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                dateOfBirth = null;
+            }
+        }
+        String phoneNumber = textOrNull(node, "phoneNumber");
+        if (phoneNumber != null) phoneNumber = formatPhoneNumber(phoneNumber);
+        return new ResumeAutofillDTO(name, dateOfBirth, phoneNumber, null);
+    }
+
+    private String requestGeminiText(String input, HttpClient client) throws Exception {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", "gemini-3.5-flash-lite");
+        payload.put("input", input);
+        String requestBody = objectMapper.writeValueAsString(payload);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/interactions"))
+                .timeout(java.time.Duration.ofSeconds(45))
+                .header("x-goog-api-key", apiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response = null;
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                break;
+            } catch (java.net.ConnectException | java.net.http.HttpTimeoutException e) {
+                if (attempt == 2) throw e;
+                Thread.sleep(1000);
+            }
+        }
+        if (response == null || response.statusCode() != 200) {
+            throw new ServiceException(
+                    "AI resume extraction request failed",
+                    response == null ? "AI_TIMEOUT" : String.valueOf(response.statusCode()));
+        }
+
+        JsonNode steps = objectMapper.readTree(response.body()).path("steps");
+        if (steps.isArray()) {
+            for (JsonNode step : steps) {
+                if (!"model_output".equals(step.path("type").asText())) continue;
+                JsonNode content = step.path("content");
+                if (!content.isArray()) continue;
+                for (JsonNode item : content) {
+                    if ("text".equals(item.path("type").asText())) {
+                        String generatedJson = item.path("text").asText().trim();
+                        if (generatedJson.startsWith("```json")) generatedJson = generatedJson.substring(7);
+                        else if (generatedJson.startsWith("```")) generatedJson = generatedJson.substring(3);
+                        if (generatedJson.endsWith("```")) {
+                            generatedJson = generatedJson.substring(0, generatedJson.length() - 3);
+                        }
+                        generatedJson = generatedJson.trim();
+                        if (!generatedJson.isEmpty()) return generatedJson;
+                    }
+                }
+            }
+        }
+        throw new ServiceException("AI response did not contain extracted resume details", "AI_INVALID_RESPONSE");
+    }
+
+    private String textOrNull(JsonNode node, String fieldName) {
+        JsonNode value = node.path(fieldName);
+        if (value.isMissingNode() || value.isNull()) return null;
+        String text = value.asText().trim();
+        return text.isEmpty() || "null".equalsIgnoreCase(text) ? null : text;
+    }
+
 //    public Candidate askPerplexityForPrompt(MultipartFile resumeFile, Long jobId, CandidateReqDTO candidateReqDTO) throws Exception {
 //        String resume = extractText(resumeFile);
 //
@@ -258,8 +358,7 @@ public class PerplexityService {
                 .connectTimeout(java.time.Duration.ofSeconds(10))
                 .build();
 
-        final String API_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions";
-        final String systemInstruction = "You are an AI job screening assistant. Compare the following resume with the job description provided, and output a JSON with fields matchedSkills (list), missingSkills (list), score (double 0-100 with 2 digit precision in percentage),name, email, phoneNumber and summary (one line). You must output ONLY a valid JSON object. Do not include explanations, Markdown, or code fences. In the summary also include the years of work experience that matches with the job description.";
+        final String systemInstruction = "You are an AI job screening assistant. Compare the following resume with the job description provided, and output a JSON with fields matchedSkills (list), missingSkills (list), score (double 0-100 with 2 digit precision in percentage), name, email, phoneNumber, dateOfBirth and summary (one line). You must output ONLY a valid JSON object. Do not include explanations, Markdown, or code fences. In the summary also include the years of work experience that matches with the job description.";
 
         try {
             List<CompletableFuture<Candidate>> futures = resumeFile.stream()
@@ -284,78 +383,10 @@ public class PerplexityService {
                                 jobDescriptionWithSkills = jobDescriptionWithSkills + job.get().getRequiredSkills();
                             }
 
-                            // 1. Build Payload
                             String combinedInput = systemInstruction + "\n\nResume:\n" + resume + "\n\nJob Description:\n" + jobDescriptionWithSkills;
-                            Map<String, Object> payload = new HashMap<>();
-                            payload.put("model", "gemini-3.5-flash-lite");
-                            payload.put("input", combinedInput);
-
-                            String requestBody = objectMapper.writeValueAsString(payload);
-
-                            HttpRequest request = HttpRequest.newBuilder()
-                                    .uri(URI.create(API_ENDPOINT))
-                                    .header("x-goog-api-key", apiKey)
-                                    .header("Content-Type", "application/json")
-                                    .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
-                                    .build();
-
-                            // 2. Execute with Retry Loop
-                            HttpResponse<String> response = null;
-                            int maxRetries = 3;
-                            boolean success = false;
-
-                            for (int i = 0; i < maxRetries; i++) {
-                                try {
-                                    response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                                    success = true;
-                                    break;
-                                } catch (java.net.ConnectException | java.net.http.HttpTimeoutException e) {
-                                    if (i == maxRetries - 1) throw e;
-                                    Thread.sleep(1000);
-                                }
-                            }
-
-                            if (!success || response.statusCode() != 200) {
-                                log.error("API call failed with status code: {}", response != null ? response.statusCode() : "timeout");
-                                duplicateList.add(resumes.getOriginalFilename());
-                                return null;
-                            }
-
-                            // 3. Parse Gemini Response Structure
-                            JsonNode rootNode = objectMapper.readTree(response.body());
-                            String generatedJson = null;
-
-                            JsonNode steps = rootNode.path("steps");
-                            if (steps.isArray()) {
-                                for (JsonNode step : steps) {
-                                    if ("model_output".equals(step.path("type").asText())) {
-                                        JsonNode contents = step.path("content");
-                                        if (contents.isArray()) {
-                                            for (JsonNode content : contents) {
-                                                if ("text".equals(content.path("type").asText())) {
-                                                    generatedJson = content.path("text").asText();
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
+                            String generatedJson = requestGeminiText(combinedInput, client);
 
                             if (generatedJson != null) {
-                                // 4. Strip Markdown Formatting
-                                generatedJson = generatedJson.trim();
-                                if (generatedJson.startsWith("```json")) {
-                                    generatedJson = generatedJson.substring(7);
-                                } else if (generatedJson.startsWith("```")) {
-                                    generatedJson = generatedJson.substring(3);
-                                }
-                                if (generatedJson.endsWith("```")) {
-                                    generatedJson = generatedJson.substring(0, generatedJson.length() - 3);
-                                }
-                                generatedJson = generatedJson.trim();
-
                                 // 5. Parse the extracted AI JSON and map to Entity
                                 JsonNode node = objectMapper.readTree(generatedJson);
 
@@ -375,7 +406,7 @@ public class PerplexityService {
                                 candidateBatch.setPhoneNumber(formatPhoneNumber(phoneNumber));
                                 candidateBatch.setEmail(email);
                                 candidateBatch.setStatus(Status.IN_PROCESS);
-                                candidateBatch.setDateOfBirth(null);
+                                candidateBatch.setDateOfBirth(textOrNull(node, "dateOfBirth"));
                                 candidateBatch.setFileData(resumes.getBytes());
                                 candidateBatch.setMatchedSkills(matchedSkills);
                                 candidateBatch.setScore(score);
@@ -509,4 +540,3 @@ public class PerplexityService {
         return String.format(Locale.ROOT, "{\"summary\":\"%s\",\"score\":%d,\"matchedSkills\":[\"Basic Skills\"],\"missingSkills\":[\"Advanced Skills\"]}", summary, score);
     }
 }
-

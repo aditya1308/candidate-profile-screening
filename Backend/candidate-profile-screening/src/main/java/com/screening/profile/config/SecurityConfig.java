@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -65,7 +66,9 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/v1/apply-job", "/api/v1/parse-resume").authenticated()
+                        .anyRequest().permitAll()
                         // Admin authentication endpoints
 //                        .requestMatchers("/admins/signup", "/admins/signin").permitAll()
 //                        // Public job endpoints for applicants
@@ -75,6 +78,8 @@ public class SecurityConfig {
 //                        // All other requests require authentication
 //                        .anyRequest().authenticated()
                 )
+                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(
+                        (request, response, exception) -> response.sendError(401, "Authentication required")))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

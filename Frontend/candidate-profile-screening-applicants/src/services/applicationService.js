@@ -1,21 +1,53 @@
+import { candidateStorageService } from './candidateStorageService.js';
+
 const API_BASE_URL = 'http://localhost:8092/api/v1';
 
 export const applicationService = {
+  async autofillResume(resume, jobId) {
+    const formData = new FormData();
+    formData.append('resumePdf', resume);
+    formData.append('jobId', jobId);
+
+    const response = await fetch(`${API_BASE_URL}/parse-resume`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${candidateStorageService.getToken()}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = 'Unable to read the resume';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        errorMessage = errorText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return await response.json();
+  },
+
   async submitApplication(applicationData) {
     try {
       const formData = new FormData();
       
       // Add all form fields to FormData
       formData.append('name', applicationData.name);
-      formData.append('email', applicationData.email);
       formData.append('dob', applicationData.dateOfBirth);
       formData.append('phoneNumber', applicationData.phone);
       formData.append('resumePdf', applicationData.resume);
       formData.append('jobId', applicationData.jobId);
-      formData.append('appliedDate', applicationData.appliedDate);
+      formData.append('consent', applicationData.consent);
 
       const response = await fetch(`${API_BASE_URL}/apply-job`, {
         method: 'POST',
+        headers: {
+          Authorization: `Bearer ${candidateStorageService.getToken()}`
+        },
         body: formData
       });
 

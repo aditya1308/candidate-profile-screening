@@ -118,7 +118,8 @@ public class CandidateAuthController {
                 responseData.put("token", token);
                 responseData.put("tokenType", "Bearer");
                 responseData.put("email", matchedCandidate.getEmail());
-                responseData.put("name", candidateName);
+                responseData.put("name", matchedCandidate.getName());
+                responseData.put("phoneNumber", matchedCandidate.getPhoneNumber());
                 responseData.put("id", matchedCandidate.getId());
                 responseData.put("role", "CANDIDATE");
                 return ResponseEntity.ok(responseData);
