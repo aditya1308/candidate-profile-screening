@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { AlertCircle, CheckCircle2, MapPin, Search, Upload, X } from 'lucide-react';
+import { AlertCircle, ArrowUpDown, CheckCircle2, MapPin, Search, Upload, X } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
 import Filters from './Filters';
@@ -12,6 +12,7 @@ const JobListings = ({ jobs = [], onJobClick, userType = 'applicant' }) => {
   const [showMatchUpload, setShowMatchUpload] = useState(false);
   const [resume, setResume] = useState(null);
   const [matchScores, setMatchScores] = useState({});
+  const [matchSortOrder, setMatchSortOrder] = useState(null);
   const [isMatching, setIsMatching] = useState(false);
   const [matchError, setMatchError] = useState('');
   const resumeInputRef = useRef(null);
@@ -58,11 +59,21 @@ const JobListings = ({ jobs = [], onJobClick, userType = 'applicant' }) => {
     });
   }, [jobs, filters, searchTerm]);
 
+  const hasMatchScores = Object.keys(matchScores).length > 0;
+  const sortedJobs = useMemo(() => {
+    if (!matchSortOrder) return filteredJobs;
+    return [...filteredJobs].sort((first, second) => {
+      const scoreDifference = (matchScores[first.id] ?? 0) - (matchScores[second.id] ?? 0);
+      return matchSortOrder === 'desc' ? -scoreDifference : scoreDifference;
+    });
+  }, [filteredJobs, matchScores, matchSortOrder]);
+
   const handleMatchSubmit = async (selectedResume = resume) => {
     if (!selectedResume || isMatching) return;
     setIsMatching(true);
     setMatchError('');
     setMatchScores({});
+    setMatchSortOrder(null);
     try {
       const matches = await jobService.matchJobs(selectedResume);
       setMatchScores(Object.fromEntries(
@@ -147,12 +158,31 @@ const JobListings = ({ jobs = [], onJobClick, userType = 'applicant' }) => {
                   />
                 </label>
                 <Filters jobs={jobs} filters={filters} onChange={setFilters} />
+                <button
+                  type="button"
+                  disabled={!hasMatchScores}
+                  onClick={() => setMatchSortOrder((currentOrder) => currentOrder === 'desc' ? 'asc' : 'desc')}
+                  title={hasMatchScores ? 'Sort jobs by resume match percentage' : 'Upload a resume with Match % to enable sorting'}
+                  aria-label={matchSortOrder === 'desc'
+                    ? 'Sort by match percentage, currently high to low'
+                    : matchSortOrder === 'asc'
+                      ? 'Sort by match percentage, currently low to high'
+                      : 'Sort by match percentage'}
+                  className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors enabled:hover:border-sg-red enabled:hover:text-sg-red disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                >
+                  <ArrowUpDown className="h-4 w-4" />
+                  {matchSortOrder === 'desc'
+                    ? 'Match: High to Low'
+                    : matchSortOrder === 'asc'
+                      ? 'Match: Low to High'
+                      : 'Sort by Match %'}
+                </button>
               </div>
             </div>
 
             <div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
-                  {filteredJobs.map((job) => (
+                  {sortedJobs.map((job) => (
                     <div
                       key={job.id}
                       className="card relative flex h-full cursor-pointer flex-col rounded-lg bg-white p-6 shadow-lg transition-all duration-200 hover:-translate-y-1 shadow-gray-400/40 hover:shadow-xl hover:shadow-gray-500/50"
