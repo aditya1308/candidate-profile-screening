@@ -495,7 +495,7 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                         type="button"
                         onClick={handleAutofill}
                         disabled={!formData.resume || !candidateIsAuthenticated || isParsing}
-                        className="mt-4 self-start rounded-lg bg-sg-red px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sg-red/90 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="mt-4 w-full rounded-lg bg-sg-red px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sg-red/90 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isFillingDetails ? 'Filling details...' : isParsing ? 'Parsing resume...' : 'Autofill Info'}
                       </button>

@@ -57,7 +57,7 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-lg border-accent-200">
-      <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6 lg:px-8">
+      <div className={`${isHR ? 'grid grid-cols-[1fr_auto_1fr]' : 'flex justify-between'} h-16 items-center px-4 sm:px-6 lg:px-8`}>
         <div className="flex items-center">
           <Link to="/dashboard">
             <img src={SGLogo} alt="Societe Generale" className="w-auto h-8 transition-opacity duration-200 cursor-pointer hover:opacity-80" />
@@ -97,7 +97,7 @@ const Header = () => {
           </nav>
         )}
         {user && (
-          <div className="relative justify-self-end" ref={dropdownRef}>
+          <div className={`relative ${isHR ? 'justify-self-end' : ''}`} ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center p-2 space-x-1 transition-colors duration-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sg-red/50 sm:space-x-3"
