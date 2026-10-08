@@ -1,10 +1,25 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Send, MapPin, Clock, Users, Calendar, Building, Briefcase, Award, CheckCircle, Zap, AlertCircle, X } from 'lucide-react';
 import { applicationService } from '../services/applicationService.js';
+import { useCandidateAuth } from '../context/useCandidateAuth';
 import Header from './Header';
 import Footer from './Footer';
 
 const ApplicationForm = ({ job, onBack, onSubmit }) => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useCandidateAuth();
+  const candidateIsAuthenticated = isAuthenticated();
+
+  const handleLoginToApply = () => {
+    navigate('/candidate/login', {
+      state: {
+        from: { pathname: '/apply' },
+        selectedJob: job
+      }
+    });
+  };
+
   // Helper function to format date safely
   const formatPostedDate = (dateString) => {
     if (!dateString) return 'Recently';
@@ -121,6 +136,7 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!candidateIsAuthenticated) return;
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
@@ -244,8 +260,28 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
             {/* Right Column: Application Form */}
             <div className="lg:col-span-3">
               <div className="p-6 bg-white border border-gray-200 shadow-lg rounded-lg transition-all duration-300 hover:-translate-y-1 shadow-gray-400/40 hover:shadow-xl hover:shadow-gray-500/50 sticky top-6 h-full min-h-[600px] flex flex-col">
-                <h2 className="mb-6 text-xl font-semibold text-gray-900">Application Form</h2>
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Application Form</h2>
+                  {!candidateIsAuthenticated && (
+                    <button
+                      type="button"
+                      onClick={handleLoginToApply}
+                      className="shrink-0 rounded-lg bg-sg-red px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sg-red/90 focus:outline-none focus:ring-2 focus:ring-sg-red focus:ring-offset-2"
+                    >
+                      Login / Register
+                    </button>
+                  )}
+                </div>
+                {!candidateIsAuthenticated && (
+                  <p className="mb-5 rounded-lg border border-gray-200 bg-gray-100 p-3 text-sm text-gray-600">
+                    Sign in or register to complete and submit your application. You can review the job details while browsing.
+                  </p>
+                )}
                 <form onSubmit={handleSubmit} className="flex-1 flex flex-col space-y-6">
+                  <fieldset
+                    disabled={!candidateIsAuthenticated}
+                    className="m-0 flex min-w-0 flex-1 flex-col space-y-6 border-0 p-0 disabled:opacity-50"
+                  >
                   {/* Personal Information */}
                   <div className="grid grid-cols-1 gap-5">
                     <div>
@@ -367,7 +403,7 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                       {/* Button layer */}
                       <button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !candidateIsAuthenticated}
                         className="relative w-full py-4 px-6 text-white font-semibold bg-sg-red hover:bg-sg-red/90 transition-all duration-200 transform group-hover:translate-x-1 group-hover:translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sg-red disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isSubmitting ? (
@@ -384,6 +420,7 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
                       </button>
                     </div>
                   </div>
+                  </fieldset>
                 </form>
               </div>
             </div>
@@ -440,4 +477,3 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
 };
 
 export default ApplicationForm;
-

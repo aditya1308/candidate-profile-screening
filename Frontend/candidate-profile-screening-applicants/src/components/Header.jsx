@@ -136,7 +136,7 @@ const Header = ({
                 className="flex items-center px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-white bg-sg-red hover:bg-sg-red/90 rounded-lg transition-all shadow-sm"
               >
                 <LogIn className="w-3.5 h-3.5 mr-1.5" />
-                Candidate Login
+                Login/Register
               </a>
             )}
           </nav>
