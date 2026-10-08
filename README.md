@@ -35,7 +35,7 @@ Duplicate Management → High risk of the same candidate being screened multiple
 - ⚡ Automated resume and profile screening  
 - 🔌 AI-powered integration with Perplexity APIs  
 - 🗃️ MySQL-backed data persistence (Server version **8.0.21**)  
-- 🛠️ Built with Java 22 and Maven 3.9.11  
+- 🛠️ Built with Java 17 and Maven 3.9.11
 - 📦 Scalable backend for integration with HR systems
 - 🎨 Modern React frontend with Tailwind CSS
 - 👥 Dual portal system (Applicants & Employers)
@@ -47,7 +47,7 @@ Duplicate Management → High risk of the same candidate being screened multiple
 Before running the project, ensure you have:
 
 ### Backend Requirements
-- **Java:** 22  
+- **Java:** 17
 - **Maven:** 3.9.11  
 - **MySQL Database:** Server version **8.0.21** (configured in `application.yml`)  
 
@@ -58,6 +58,39 @@ Before running the project, ensure you have:
 ---
 
 ## 🚀 Getting Started
+
+### Backend Setup (Windows, first run)
+
+The backend targets **Java 17** and uses **MySQL Server**. The project documents MySQL **8.0.21**. MySQL Workbench is optional; the backend connects to the MySQL server running locally on port `3306`.
+
+1. **Check Java and Maven.** Open PowerShell and run:
+
+   ```powershell
+   java -version
+   mvn -version
+   ```
+   Install a JDK (17 or newer) and Maven 3.9.11 if either command is not found. Java 17 is the project target; newer JDKs such as Java 21 can run this build.
+
+2. **Start the MySQL service.** In Windows Services, start the installed MySQL Server service. Or, from an elevated PowerShell, find its service name and start it (the name may differ):
+
+3. **Create the application database and a local database user.** From PowerShell, open the MySQL command-line client:
+
+   ```powershell
+   mysql -u root -p
+   ```
+
+   Enter the MySQL root password when prompted, then run these SQL statements at the MySQL prompt. Replace the example password with one you choose:
+
+   ```sql
+   CREATE DATABASE IF NOT EXISTS candidate
+   ```
+
+4. **Configure the datasource credentials in the same PowerShell window.** These must match the user and password created above. The project connects to `jdbc:mysql://localhost:3306/candidate`.
+
+   ```powershell
+   mvn spring-boot:run
+   ```
+
 
 ### Frontend Setup
 - `npm install` - Install dependencies
