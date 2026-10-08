@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { useState, useRef, useEffect } from 'react';
 import SGLogo from '../assets/SG.svg';
@@ -10,9 +10,11 @@ import { authService } from '../services/authService';
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const isHR = user?.role === 'HR';
   
   // Get email from JWT token if not available in user object
   const getUserEmail = () => {
@@ -55,7 +57,7 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-lg border-accent-200">
-      <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+      <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6 lg:px-8">
         <div className="flex items-center">
           <Link to="/dashboard">
             <img src={SGLogo} alt="Societe Generale" className="w-auto h-8 transition-opacity duration-200 cursor-pointer hover:opacity-80" />
@@ -66,11 +68,39 @@ const Header = () => {
             </div>
           )}
         </div>
+        {isHR && (
+          <nav className="flex items-center justify-center gap-1" aria-label="HR navigation">
+            <NavLink
+              to="/dashboard"
+              className={`group relative rounded-full px-2 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+                location.pathname === '/analytics'
+                  ? 'text-gray-600 hover:bg-gray-100'
+                  : 'bg-sg-red text-white'
+              }`}
+            >
+              Job Openings
+              <span
+                role="tooltip"
+                className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-max max-w-64 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs font-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+              >
+                Manage and monitor all active job postings
+              </span>
+            </NavLink>
+            <NavLink
+              to="/analytics"
+              className={({ isActive }) => `rounded-full px-2 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+                isActive ? 'bg-sg-red text-white' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Analytics
+            </NavLink>
+          </nav>
+        )}
         {user && (
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative justify-self-end" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center p-2 space-x-3 transition-colors duration-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sg-red/50"
+              className="flex items-center p-2 space-x-1 transition-colors duration-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sg-red/50 sm:space-x-3"
             >
               {/* User Avatar */}
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-sg-red">
@@ -80,7 +110,7 @@ const Header = () => {
               </div>
               
               {/* User Info */}
-              <div className="text-left">
+              <div className="hidden text-left sm:block">
                 <p className="text-sm font-medium text-gray-900">{user.name}</p>
                 <p className="text-xs text-gray-500">Signed in</p>
               </div>
