@@ -165,29 +165,19 @@ const JobList = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <div className="mx-auto max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="mb-2 text-3xl font-bold text-gray-900">
-              Job Openings 
-            </h1>
-            <p className="text-gray-600">
-              {user?.role === 'INTERVIEWER' ? 'Browse and review job postings' : 'Manage and monitor all active job postings'}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center rounded-md border border-gray-200 bg-white px-3 shadow-sm">
-              <Search className="mr-2 h-4 w-4 text-gray-400" />
-              <input
-                type="search"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search jobs..."
-                aria-label="Search jobs by title or description"
-                className="w-56 py-2 text-sm outline-none"
-              />
-            </label>
-            <Filters jobs={jobs} filters={filters} onChange={setFilters} />
-          </div>
+        <div className="mb-8 flex items-center gap-3">
+          <label className="flex min-w-0 flex-1 items-center rounded-md border border-gray-200 bg-white px-3 shadow-sm">
+            <Search className="mr-2 h-4 w-4 shrink-0 text-gray-400" />
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search jobs..."
+              aria-label="Search jobs by title or description"
+              className="w-full min-w-0 py-2 text-sm outline-none"
+            />
+          </label>
+          <Filters jobs={jobs} filters={filters} onChange={setFilters} />
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

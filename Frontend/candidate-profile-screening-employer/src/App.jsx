@@ -8,6 +8,7 @@ import SuperAdminPage from './pages/SuperAdminPage';
 import HRJobDetailsPage from './pages/HRJobDetailsPage';
 import InterviewerJobDetailsPage from './pages/InterviewerJobDetailsPage';
 import InterviewerDashboardPage from './pages/InterviewerDashboardPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import { useAuth } from './context/useAuth';
 import './App.css';
 
@@ -25,6 +26,11 @@ const RoleBasedDashboard = () => {
     return <InterviewerDashboardPage />;
   }
   return <DashboardPage />;
+};
+
+const HRAnalyticsPage = () => {
+  const { user } = useAuth();
+  return user?.role === 'HR' ? <AnalyticsPage /> : <Navigate to="/dashboard" replace />;
 };
 
 const ProtectedLayout = ({ children }) => {
@@ -54,6 +60,14 @@ function App() {
             element={
               <ProtectedLayout>
                 <RoleBasedJobDetails />
+              </ProtectedLayout>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedLayout>
+                <HRAnalyticsPage />
               </ProtectedLayout>
             }
           />
