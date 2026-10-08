@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.screening.profile.dto.CandidateInterviewDTO;
 import com.screening.profile.dto.CandidateProcessingDTO;
 import com.screening.profile.dto.CandidateReqDTO;
+import com.screening.profile.dto.JobMatchScoreDTO;
 import com.screening.profile.dto.ResumeAutofillDTO;
 import com.screening.profile.exception.ServiceException;
 import com.screening.profile.model.Candidate;
@@ -17,6 +18,7 @@ import com.screening.profile.util.parser.PdfParsingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -122,6 +124,33 @@ public class JobMatchController {
             log.error("Resume detail extraction failed", e);
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                     .body(Map.of("message", "Resume information could not be extracted. Please try again or upload another PDF."));
+        }
+    }
+
+    @PostMapping(value = "/match-jobs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> matchJobs(@RequestParam("resumePdf") MultipartFile resumePdf) {
+        ResponseEntity<?> fileValidation = validateResume(resumePdf);
+        if (fileValidation != null) return fileValidation;
+
+        try {
+            String resumeText = PdfParsingUtil.extractText(resumePdf);
+            if (resumeText == null || resumeText.isBlank()) {
+                return ResponseEntity.unprocessableEntity()
+                        .body(Map.of("message", "No readable text was found in this PDF. Please upload a text-based PDF."));
+            }
+            List<JobMatchScoreDTO> matches = perplexityService.matchResumeToJobs(resumeText);
+            return ResponseEntity.ok(matches);
+        } catch (ServiceException e) {
+            log.error("Resume-to-job matching failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (java.io.IOException e) {
+            log.warn("Could not read uploaded resume PDF: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", "The uploaded PDF could not be read."));
+        } catch (Exception e) {
+            log.error("Resume-to-job matching failed", e);
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(Map.of("message", "Job matches could not be generated. Please try again."));
         }
     }
 
