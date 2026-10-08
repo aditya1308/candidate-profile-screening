@@ -67,7 +67,8 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/v1/apply-job", "/api/v1/parse-resume").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/apply-job", "/api/v1/parse-resume",
+                                "/api/v1/match-jobs").authenticated()
                         .anyRequest().permitAll()
                         // Admin authentication endpoints
 //                        .requestMatchers("/admins/signup", "/admins/signin").permitAll()
