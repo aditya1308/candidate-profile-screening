@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const Header = ({ 
   showNavigation = true, 
   showBackButton = false, 
-  backButtonText = "Back to Home",
+  backButtonText = "Home",
   onBackClick,
   className = ""
 }) => {
@@ -48,6 +48,15 @@ const Header = ({
               className="w-auto h-16 transition-opacity duration-200 cursor-pointer hover:opacity-80"
               onClick={handleLogoClick}
             />
+            {showBackButton && (
+              <button
+                onClick={onBackClick}
+                className="flex items-center px-3 sm:px-4 py-2 text-sg-red hover:text-sg-red/80 font-medium transition-colors rounded-lg hover:bg-sg-red/10 text-xs sm:text-sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                {backButtonText}
+              </button>
+            )}
           </div>
         </div>
         
@@ -60,12 +69,6 @@ const Header = ({
               Contact
             </a>
             
-            {user && (
-              <a href="/candidate/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium flex items-center">
-                Job Applications
-              </a>
-            )}
-
             {user ? (
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -95,9 +98,22 @@ const Header = ({
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 z-50 w-48 py-2 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
+                    <div className="border-b border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          navigate('/candidate/dashboard');
+                        }}
+                        className="group relative block w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sg-red"
+                        aria-label="Go to account details"
+                      >
+                        <span className="pointer-events-none absolute right-2 top-0 -translate-y-full rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white opacity-0 shadow transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                          Go to account details
+                        </span>
+                        <span className="block text-sm font-medium text-gray-900">{user.name}</span>
+                        <span className="block text-xs text-gray-500">{user.email}</span>
+                      </button>
                     </div>
                     
                     <div className="py-1">
@@ -122,15 +138,6 @@ const Header = ({
                 <LogIn className="w-3.5 h-3.5 mr-1.5" />
                 Candidate Login
               </a>
-            )}
-            {showBackButton && (
-              <button 
-                onClick={onBackClick} 
-                className="flex items-center px-3 sm:px-4 py-2 text-sg-red hover:text-sg-red/80 font-medium transition-colors rounded-lg hover:bg-sg-red/10 text-xs sm:text-sm"
-              >
-                <ArrowLeft className="w-4 h-4 mr-1.5" />
-                {backButtonText}
-              </button>
             )}
           </nav>
         )}

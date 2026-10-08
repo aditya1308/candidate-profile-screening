@@ -161,7 +161,7 @@ const CandidateLogin = () => {
       <Header
         showNavigation={true}
         showBackButton={true}
-        backButtonText="Back to Home"
+        backButtonText="Home"
         onBackClick={() => navigate('/')}
         className="relative z-20 bg-white/90 backdrop-blur-md border-b border-gray-100"
       />

@@ -163,7 +163,7 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
 
   return (
     <div className="min-h-screen bg-sg-gray pb-16">
-      <Header showBackButton={true} backButtonText="Back to Home" onBackClick={onBack} />
+      <Header showBackButton={true} backButtonText="Home" onBackClick={onBack} />
       
       <main className="pt-16">
         <div className="px-6 mx-auto max-w-7xl py-6">
@@ -440,5 +440,4 @@ const ApplicationForm = ({ job, onBack, onSubmit }) => {
 };
 
 export default ApplicationForm;
-
 
