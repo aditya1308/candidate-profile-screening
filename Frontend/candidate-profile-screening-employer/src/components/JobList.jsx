@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Plus, Edit, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { jobService } from '../services/jobService';
 import { useAuth } from '../context/useAuth';
 import Button3D from './Button3D';
@@ -8,12 +8,14 @@ import JobFormModal from './JobFormModal';
 import ConfirmationModal from './ConfirmationModal';
 import ToastNotification from './ToastNotification';
 import useToast from '../hooks/useToast';
+import Filters from './Filters';
 
 const JobList = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({ skills: [], locations: [], titles: [] });
   
   // Modal states
   const [showJobModal, setShowJobModal] = useState(false);
@@ -117,9 +119,16 @@ const JobList = () => {
   };
 
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    const normalizedSearch = searchTerm.toLowerCase().trim();
+    const matchesSearch = !normalizedSearch ||
+      job.title?.toLowerCase().includes(normalizedSearch) ||
+      job.description?.toLowerCase().includes(normalizedSearch);
+    const normalize = value => (value || '').toLowerCase().trim();
+    const matchesTitle = filters.titles.length === 0 || filters.titles.some(title => normalize(title) === normalize(job.title));
+    const matchesLocation = filters.locations.length === 0 || filters.locations.some(location => normalize(location) === normalize(job.location));
+    const jobSkills = (job.requiredSkills || '').split(/[,\n]+/).map(normalize).filter(Boolean);
+    const matchesSkill = filters.skills.length === 0 || filters.skills.some(skill => jobSkills.includes(normalize(skill)));
+    return matchesSearch && matchesTitle && matchesLocation && matchesSkill;
   });
 
   if (loading) {
@@ -165,14 +174,19 @@ const JobList = () => {
               {user?.role === 'INTERVIEWER' ? 'Browse and review job postings' : 'Manage and monitor all active job postings'}
             </p>
           </div>
-          <div>
-            <input
-              type="text"
-              placeholder="Search jobs by title or description..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field w-80"
-            />
+          <div className="flex items-center gap-3">
+            <label className="flex items-center rounded-md border border-gray-200 bg-white px-3 shadow-sm">
+              <Search className="mr-2 h-4 w-4 text-gray-400" />
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search jobs..."
+                aria-label="Search jobs by title or description"
+                className="w-56 py-2 text-sm outline-none"
+              />
+            </label>
+            <Filters jobs={jobs} filters={filters} onChange={setFilters} />
           </div>
         </div>
 

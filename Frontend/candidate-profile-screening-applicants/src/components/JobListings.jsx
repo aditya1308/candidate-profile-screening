@@ -1,23 +1,29 @@
 import { useMemo, useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
 import Filters from './Filters';
 
 const JobListings = ({ jobs = [], onJobClick, userType = 'applicant' }) => {
   const [filters, setFilters] = useState({ skills: [], locations: [], titles: [] });
+  const [searchTerm, setSearchTerm] = useState('');
 
   const filteredJobs = useMemo(() => {
     const normalize = (value) => (value || '').toLowerCase().trim();
+    const normalizedSearch = normalize(searchTerm);
 
     const selectedTitles = (filters.titles || []).map(normalize);
     const selectedLocations = (filters.locations || []).map(normalize);
     const selectedSkills = (filters.skills || []).map(normalize);
 
-    const hasAnyFilter = selectedTitles.length > 0 || selectedLocations.length > 0 || selectedSkills.length > 0;
+    const hasAnyFilter = normalizedSearch || selectedTitles.length > 0 || selectedLocations.length > 0 || selectedSkills.length > 0;
     if (!hasAnyFilter) return jobs;
 
     return jobs.filter((job) => {
+      if (normalizedSearch && ![job.title, job.description].some((value) => normalize(value).includes(normalizedSearch))) {
+        return false;
+      }
+
       if (selectedTitles.length > 0 && !selectedTitles.includes(normalize(job.title))) {
         return false;
       }
@@ -40,7 +46,7 @@ const JobListings = ({ jobs = [], onJobClick, userType = 'applicant' }) => {
 
       return true;
     });
-  }, [jobs, filters]);
+  }, [jobs, filters, searchTerm]);
 
   return (
     <div className="min-h-screen bg-sg-gray pb-16">
@@ -67,7 +73,18 @@ const JobListings = ({ jobs = [], onJobClick, userType = 'applicant' }) => {
               <div className="text-sm text-gray-600">
                 Browse {filteredJobs.length} {filteredJobs.length === 1 ? 'position' : 'positions'}
               </div>
-              <div>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center rounded-md border border-gray-200 bg-white px-3 shadow-sm">
+                  <Search className="mr-2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="search"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Search jobs..."
+                    aria-label="Search jobs by title or description"
+                    className="w-56 py-2 text-sm outline-none"
+                  />
+                </label>
                 <Filters jobs={jobs} filters={filters} onChange={setFilters} />
               </div>
             </div>
