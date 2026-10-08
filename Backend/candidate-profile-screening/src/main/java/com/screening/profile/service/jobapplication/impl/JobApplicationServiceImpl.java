@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class JobApplicationServiceImpl implements JobApplicationService {
@@ -71,6 +73,15 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .orElseThrow(() -> new ServiceException("JOB_NOT_FOUND", "Job not found"));
         return jobApplicationRepository.findByJob(job);
     }
+
+    @Override
+    public Map<Integer, Long> getApplicationCountsByJob() {
+        return jobApplicationRepository.countApplicationsByJob().stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).intValue(),
+                        row -> ((Number) row[1]).longValue()));
+    }
+
     public List<JobApplication> getJobById(Long id){
         return jobApplicationRepository.findByJobId(id);
     }

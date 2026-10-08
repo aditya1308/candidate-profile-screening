@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Plus, Edit, Trash2, Search } from 'lucide-react';
+import { ArrowUpDown, MapPin, Plus, Edit, Trash2, Search, Users } from 'lucide-react';
 import { jobService } from '../services/jobService';
 import { useAuth } from '../context/useAuth';
 import Button3D from './Button3D';
@@ -16,6 +16,8 @@ const JobList = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ skills: [], locations: [], titles: [] });
+  const [applicationCounts, setApplicationCounts] = useState(null);
+  const [applicationSortOrder, setApplicationSortOrder] = useState(null);
   
   // Modal states
   const [showJobModal, setShowJobModal] = useState(false);
@@ -39,8 +41,15 @@ const JobList = () => {
   const fetchJobs = async () => {
     try {
       setLoading(true);
-      const fetchedJobs = await jobService.getAllJobs();
-      setJobs(fetchedJobs);
+      const [fetchedJobs, fetchedApplicationCounts] = await Promise.all([
+        jobService.getAllJobs(),
+        jobService.getApplicationCountsByJob()
+      ]);
+      setApplicationCounts(fetchedApplicationCounts);
+      setJobs(fetchedJobs.map(job => ({
+        ...job,
+        applications: fetchedApplicationCounts[job.id] ?? 0
+      })));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -130,6 +139,12 @@ const JobList = () => {
     const matchesSkill = filters.skills.length === 0 || filters.skills.some(skill => jobSkills.includes(normalize(skill)));
     return matchesSearch && matchesTitle && matchesLocation && matchesSkill;
   });
+  const sortedJobs = applicationSortOrder
+    ? [...filteredJobs].sort((first, second) => {
+      const difference = first.applications - second.applications;
+      return applicationSortOrder === 'desc' ? -difference : difference;
+    })
+    : filteredJobs;
 
   if (loading) {
     return (
@@ -178,6 +193,25 @@ const JobList = () => {
             />
           </label>
           <Filters jobs={jobs} filters={filters} onChange={setFilters} />
+          <button
+            type="button"
+            disabled={applicationCounts === null}
+            onClick={() => setApplicationSortOrder(currentOrder => currentOrder === 'desc' ? 'asc' : 'desc')}
+            title={applicationCounts === null ? 'Application counts are not available yet' : 'Sort jobs by applicant count'}
+            aria-label={applicationSortOrder === 'desc'
+              ? 'Sort by applicant count, currently high to low'
+              : applicationSortOrder === 'asc'
+                ? 'Sort by applicant count, currently low to high'
+                : 'Sort by applicant count'}
+            className="inline-flex shrink-0 items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors enabled:hover:border-sg-red enabled:hover:text-sg-red disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+          >
+            <ArrowUpDown className="h-4 w-4" />
+            {applicationSortOrder === 'desc'
+              ? 'Applicants: High to Low'
+              : applicationSortOrder === 'asc'
+                ? 'Applicants: Low to High'
+                : 'Sort by Applicants'}
+          </button>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -196,7 +230,7 @@ const JobList = () => {
           )}
 
           {/* Existing Job Cards */}
-          {filteredJobs.map(job => (
+          {sortedJobs.map(job => (
             <div
               key={job.id}
               className="flex flex-col h-full p-6 transition-all duration-200 bg-white rounded-lg shadow-lg card hover:-translate-y-1 shadow-gray-400/40 hover:shadow-xl hover:shadow-gray-500/50 relative group"
@@ -234,6 +268,12 @@ const JobList = () => {
                     <div className="flex items-center mb-3 text-gray-600">
                       <MapPin className="w-4 h-4 mr-2" />
                       <span className="text-sm">{job.location || 'Not specified'}</span>
+                    </div>
+                    <div className="flex items-center text-gray-600">
+                      <Users className="w-4 h-4 mr-2" />
+                      <span className="text-sm">
+                        {job.applications} {job.applications === 1 ? 'applicant' : 'applicants'}
+                      </span>
                     </div>
                   </div>
                 </div>
