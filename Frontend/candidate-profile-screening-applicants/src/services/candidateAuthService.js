@@ -21,7 +21,7 @@ export const candidateAuthService = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json, text/plain, */*'
+          'Accept': 'application/json'
         },
         body: JSON.stringify(payload)
       });
@@ -56,6 +56,7 @@ export const candidateAuthService = {
             id: parsed.id,
             email: parsed.email,
             name: parsed.name,
+            phoneNumber: parsed.phoneNumber,
             role: parsed.role || 'CANDIDATE'
           };
         }
@@ -74,7 +75,8 @@ export const candidateAuthService = {
       if (!userInfo) {
         userInfo = this.decodeToken(token) || {
           email: email.trim(),
-          name: email.trim(),
+          name: '',
+          phoneNumber: '',
           role: 'CANDIDATE'
         };
       }
@@ -180,7 +182,8 @@ export const candidateAuthService = {
       const decoded = JSON.parse(jsonPayload);
       return {
         email: decoded.sub || decoded.email,
-        name: decoded.fullName || decoded.name || decoded.sub,
+        name: decoded.fullName || decoded.name || '',
+        phoneNumber: decoded.phoneNumber || '',
         role: decoded.role || 'CANDIDATE',
         exp: decoded.exp
       };

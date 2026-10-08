@@ -4,21 +4,28 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.screening.profile.dto.CandidateInterviewDTO;
 import com.screening.profile.dto.CandidateProcessingDTO;
 import com.screening.profile.dto.CandidateReqDTO;
+import com.screening.profile.dto.ResumeAutofillDTO;
+import com.screening.profile.exception.ServiceException;
 import com.screening.profile.model.Candidate;
 import com.screening.profile.service.PerplexityService;
 import com.screening.profile.service.candidate.CandidateService;
+import com.screening.profile.service.interview.InterviewService;
+import com.screening.profile.util.SetInterviewerRequest;
 import com.screening.profile.util.enums.Status;
+import com.screening.profile.util.ExtractorHelperUtils;
 import com.screening.profile.util.parser.PdfParsingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import com.screening.profile.service.interview.InterviewService;
-import com.screening.profile.util.SetInterviewerRequest;
+import java.util.Locale;
+import java.util.Map;
+import java.time.LocalDate;
 
 @RestController
 @CrossOrigin("*")
@@ -26,27 +33,59 @@ import com.screening.profile.util.SetInterviewerRequest;
 @RequestMapping("api/v1")
 public class JobMatchController {
 
+    private static final long MAX_RESUME_SIZE = 5 * 1024 * 1024;
     private final PerplexityService perplexityService;
     private final CandidateService candidateService;
     private final InterviewService interviewService;
 
     @Autowired
-    public JobMatchController(PerplexityService perplexityService, CandidateService candidateService, InterviewService interviewService) {
+    public JobMatchController(PerplexityService perplexityService, CandidateService candidateService,
+                              InterviewService interviewService) {
         this.perplexityService = perplexityService;
         this.candidateService = candidateService;
         this.interviewService = interviewService;
     }
 
     @PostMapping("/apply-job")
-    public ResponseEntity<?> analyze(@RequestParam("resumePdf") MultipartFile resumePdf, @RequestParam("jobId") Long jobId, @RequestParam String name,
-                                     @RequestParam String email, @RequestParam String phoneNumber, @RequestParam String dob) throws Exception {
+    public ResponseEntity<?> analyze(@RequestParam("resumePdf") MultipartFile resumePdf,
+                                     @RequestParam("jobId") Long jobId,
+                                     @RequestParam String name,
+                                     @RequestParam String phoneNumber,
+                                     @RequestParam String dob,
+                                     @RequestParam(defaultValue = "false") boolean consent) throws Exception {
+        ResponseEntity<?> fileValidation = validateResume(resumePdf);
+        if (fileValidation != null) return fileValidation;
+        String authenticatedEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        boolean validDateOfBirth;
+        try {
+            LocalDate parsedDob = LocalDate.parse(dob);
+            validDateOfBirth = parsedDob.getYear() >= 1950 && !parsedDob.isAfter(LocalDate.now());
+        } catch (RuntimeException e) {
+            validDateOfBirth = false;
+        }
+        if (name == null || name.isBlank() || phoneNumber == null || !phoneNumber.matches("\\d{10}")
+                || authenticatedEmail == null || authenticatedEmail.isBlank() || !validDateOfBirth || !consent) {
+            return ResponseEntity.badRequest().body(Map.of("message",
+                    "Full name, a valid 10-digit phone number, date of birth, and personal data consent are required."));
+        }
+
         log.info("JobController, file received");
         CandidateReqDTO candidateReqDTO = new CandidateReqDTO();
-        candidateReqDTO.setName(name);
-        candidateReqDTO.setEmail(email);
+        candidateReqDTO.setName(name.trim());
+        candidateReqDTO.setEmail(authenticatedEmail);
         candidateReqDTO.setPhoneNumber(phoneNumber);
         candidateReqDTO.setDob(dob);
-        candidateReqDTO.setResumeText(PdfParsingUtil.extractText(resumePdf));
+        String resumeText = PdfParsingUtil.extractText(resumePdf);
+        if (resumeText == null || resumeText.isBlank()) {
+            return ResponseEntity.unprocessableEntity()
+                    .body(Map.of("message", "No readable text was found in this PDF. Please upload a text-based PDF."));
+        }
+        String resumeEmail = ExtractorHelperUtils.extractEmail(resumeText);
+        if (resumeEmail != null && !resumeEmail.equalsIgnoreCase(authenticatedEmail)) {
+            return ResponseEntity.badRequest().body(Map.of("message",
+                    "The email address in the resume does not match your account email."));
+        }
+        candidateReqDTO.setResumeText(resumeText);
 
         Candidate candidate = this.perplexityService.askGeminiForPrompt(resumePdf, jobId, candidateReqDTO);
         if (candidate == null) {
@@ -55,6 +94,50 @@ public class JobMatchController {
                     .body("Candidate already exists for this job description");
         }
         return ResponseEntity.ok().body(candidate);
+    }
+
+    @PostMapping("/parse-resume")
+    public ResponseEntity<?> parseResume(@RequestParam("resumePdf") MultipartFile resumePdf,
+                                         @RequestParam("jobId") Long jobId) {
+        ResponseEntity<?> fileValidation = validateResume(resumePdf);
+        if (fileValidation != null) return fileValidation;
+
+        try {
+            String resumeText = PdfParsingUtil.extractText(resumePdf);
+            if (resumeText == null || resumeText.isBlank()) {
+                return ResponseEntity.unprocessableEntity()
+                        .body(Map.of("message", "No readable text was found in this PDF. Please upload a text-based PDF."));
+            }
+            ResumeAutofillDTO details = perplexityService.extractResumeDetails(resumeText, jobId);
+            details.setEmail(ExtractorHelperUtils.extractEmail(resumeText));
+            return ResponseEntity.ok(details);
+        } catch (ServiceException e) {
+            log.error("Resume detail extraction failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (java.io.IOException e) {
+            log.warn("Could not read uploaded resume PDF: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", "The uploaded PDF could not be read."));
+        } catch (Exception e) {
+            log.error("Resume detail extraction failed", e);
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(Map.of("message", "Resume information could not be extracted. Please try again or upload another PDF."));
+        }
+    }
+
+    private ResponseEntity<?> validateResume(MultipartFile resumePdf) {
+        if (resumePdf == null || resumePdf.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "A PDF resume is required."));
+        }
+        String filename = resumePdf.getOriginalFilename();
+        if (filename == null || !filename.toLowerCase(Locale.ROOT).endsWith(".pdf")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Unsupported file type. Please upload a PDF."));
+        }
+        if (resumePdf.getSize() > MAX_RESUME_SIZE) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                    .body(Map.of("message", "The PDF must be 5MB or smaller."));
+        }
+        return null;
     }
 
     @GetMapping("/candidates")
