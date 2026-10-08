@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/applications")
@@ -40,6 +41,11 @@ public class JobApplicationController {
     public ResponseEntity<List<JobApplication>> getApplicationsByJob(@PathVariable Integer jobId) {
         List<JobApplication> applications = jobApplicationService.getApplicationsByJob(jobId);
         return ResponseEntity.ok(applications);
+    }
+
+    @GetMapping("/counts-by-job")
+    public ResponseEntity<Map<Integer, Long>> getApplicationCountsByJob() {
+        return ResponseEntity.ok(jobApplicationService.getApplicationCountsByJob());
     }
     
 //    @PutMapping("/{applicationId}/status")

@@ -1,6 +1,15 @@
 import { API_CONFIG, apiRequest, handleApiError } from './apiConfig.js';
 
 export const jobService = {
+  async getApplicationCountsByJob() {
+    try {
+      const response = await apiRequest(`${API_CONFIG.BASE_URL}/applications/counts-by-job`);
+      return await response.json();
+    } catch (error) {
+      throw handleApiError(error, 'fetching application counts');
+    }
+  },
+
   async getAllJobs() {
     try {
       const response = await apiRequest(`${API_CONFIG.BASE_URL}/jobs`);

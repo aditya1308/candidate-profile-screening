@@ -17,6 +17,9 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     List<JobApplication> findByJobId(Long jobId);
     List<JobApplication> findByCandidateId(Long candidateId);
 
+    @Query("SELECT a.job.id AS jobId, COUNT(a) AS applicationCount FROM JobApplication a GROUP BY a.job.id")
+    List<Object[]> countApplicationsByJob();
+
     @Query("SELECT c FROM Candidate c JOIN JobApplication a ON c.id = a.candidate.id WHERE a.job.id = :jobId")
     List<Candidate> findCandidatesByJobId(@Param("jobId") Long jobId);
 
