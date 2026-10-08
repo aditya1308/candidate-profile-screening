@@ -14,7 +14,7 @@ import { useState, useEffect } from 'react'
 const ApplicantRoutes = () => {
   const location = useLocation()
   const [currentPage, setCurrentPage] = useState('landing')
-  const [selectedJob, setSelectedJob] = useState(null)
+  const [selectedJob, setSelectedJob] = useState(() => location.state?.selectedJob || null)
   const [submittedApplication, setSubmittedApplication] = useState(null)
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(false)
@@ -26,11 +26,14 @@ const ApplicantRoutes = () => {
     if (path === '/jobs') {
       setCurrentPage('jobs')
     } else if (path === '/apply') {
+      if (location.state?.selectedJob) {
+        setSelectedJob(location.state.selectedJob)
+      }
       setCurrentPage('apply')
     } else if (path === '/') {
       setCurrentPage('landing')
     }
-  }, [location.pathname])
+  }, [location.pathname, location.state])
 
   useEffect(() => {
     if (currentPage === 'jobs') {

@@ -101,8 +101,13 @@ const CandidateLogin = () => {
       await login(loginData.identifier, loginData.password);
       setSuccessMessage('Login successful! Redirecting...');
       setTimeout(() => {
-        const from = location.state?.from?.pathname || '/jobs';
-        navigate(from, { replace: true });
+        const from = location.state?.from || { pathname: '/jobs' };
+        navigate(from.pathname || '/jobs', {
+          replace: true,
+          state: location.state?.selectedJob
+            ? { selectedJob: location.state.selectedJob }
+            : undefined
+        });
       }, 500);
     } catch (err) {
       setGeneralError(err.message || 'Invalid email/username or password. Please try again.');

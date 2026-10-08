@@ -100,7 +100,14 @@ const JobListings = ({ jobs = [], onJobClick, userType = 'applicant' }) => {
                             style={{ transform: 'translate(4px, 4px)' }}
                           />
 
-                          <button className="relative w-full transform bg-sg-red px-6 py-4 font-semibold text-white transition-all duration-200 hover:bg-sg-red/90 group-hover:translate-x-1 group-hover:translate-y-1 focus:outline-none focus:ring-2 focus:ring-sg-red focus:ring-offset-2">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onJobClick(job);
+                            }}
+                            className="relative w-full transform bg-sg-red px-6 py-4 font-semibold text-white transition-all duration-200 hover:bg-sg-red/90 group-hover:translate-x-1 group-hover:translate-y-1 focus:outline-none focus:ring-2 focus:ring-sg-red focus:ring-offset-2"
+                          >
                             Apply Now
                           </button>
                         </div>
